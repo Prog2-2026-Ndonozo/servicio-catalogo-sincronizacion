@@ -1,0 +1,116 @@
+# Backlog — servicio de catálogo y sincronización
+
+> v2: un issue = un caso de uso/funcionalidad = un commit o PR coherente. El desglose por capa hexagonal (puerto/adaptador/dominio/test) vive como checklist *dentro* de cada issue, no como issues separados — así el historial de commits queda legible por funcionalidad, tal como pide la sección 13.1 del enunciado.
+
+## Labels sugeridos
+
+`feature` · `chore` · `docs` · `security` · `decision-needed` (bloquea el feature hasta resolverse con un ADR)
+
+## Convención de trabajo
+
+- Un issue = una rama (`feature/5-sincronizacion-completa`) = un PR que lo cierra (`Closes #5`).
+- El checklist de cada issue es la guía interna de implementación (capas hexagonales), no son sub-issues.
+- Un PR no se mergea si el sistema queda en un estado a medio implementar — el caso de uso tiene que funcionar de punta a punta (aunque sea con lo mínimo) antes de cerrar el issue.
+- DoD por issue, salvo que diga lo contrario:
+  - [ ] Todos los ítems del checklist interno resueltos
+  - [ ] Código en la capa correcta según `docs/arquitecturaHexagonalServicioCatalogo`
+  - [ ] Al menos un test que cubra el caso de uso
+  - [ ] Sin secretos ni credenciales hardcodeadas
+  - [ ] docs/ actualizado si el issue cambia un contrato externo
+
+---
+
+## Milestone 0 — Bootstrap
+
+No son casos de uso funcionales, son la plomería previa — cada uno ya es un commit natural propio (`chore:`).
+
+### #1 chore: setup del proyecto + esqueleto hexagonal `[chore]`
+Proyecto Spring Boot inicial + carpetas `domain/`, `adapter/`, `config/` vacías, con un test de arquitectura (ArchUnit) que falle si `domain` importa de `adapter` o de Spring/JPA.
+
+### #2 chore: Docker Compose local `[chore]`
+PostgreSQL propio + variables de entorno externalizadas (`application.yml` con placeholders, `.env.example`).
+
+### #3 feat: modelo de dominio base `[feature]`
+`Professional`, `ProfessionalCategory`, `WeeklySchedule`, `CatalogVersion` como clases de dominio puras, con las validaciones mínimas del contrato del snapshot.
+
+### #4 chore: puerto de persistencia + esquema inicial `[chore]`
+`CatalogRepositoryPort` + `JpaCatalogRepositoryAdapter` con migraciones (Flyway/Liquibase). Solo esquema, sin lógica de negocio todavía.
+
+---
+
+## Milestone 1 — Sincronización completa
+
+Cubre evidencia mínima: *"una inicialización desde snapshot"* (sección 11).
+
+### #5 feat: sincronización completa del catálogo desde snapshot `[feature]`
+- [ ] Puerto `CatedraSnapshotPort` + adaptador REST (`GET /api/synchronization/snapshot`, JWT técnico)
+- [ ] Caso de uso `ApplyFullSnapshotUseCase`: aplica versión + 3 colecciones de forma transaccional (sección 6.1)
+- [ ] Disparo de la sincronización completa (al bootear con base vacía, o endpoint interno)
+- [ ] Test: si falla a mitad de camino, la versión local no avanza
+
+---
+
+## Milestone 2 — Sincronización incremental
+
+Cubre evidencia mínima: *"una actualización incremental del catálogo"* + *"procesamiento idempotente de un mensaje duplicado"*.
+
+### #6 feat: sincronización incremental de catálogo vía Kafka + Redis `[feature]`
+- [ ] Adaptador Kafka de entrada: listener de `CatalogUpdated` en `catedra.catalog.{groupId}`
+- [ ] Puerto `CatedraCatalogReadPort` + adaptador Redis (metadata, Hashes, `changes:{version}`)
+- [ ] Caso de uso `ApplyIncrementalChangeUseCase`: aplica en orden, avanza versión solo tras éxito total (sección 6.2)
+- [ ] Deduplicación por `eventId` (evento repetido no reaplica efectos)
+- [ ] Manejo de versión fuera de orden (no aplicar fuera de secuencia)
+- [ ] Test: mismo evento procesado dos veces produce el mismo estado final que procesarlo una vez
+
+---
+
+## Milestone 3 — Discontinuidad y reconstrucción
+
+Cubre evidencia mínima: *"recuperación mediante snapshot luego de una discontinuidad"*.
+
+### #7 feat: detección de discontinuidad y reconstrucción automática `[feature]`
+- [ ] Chequeo de versión local vs `oldestAvailableVersion` antes de intentar incremental
+- [ ] Si está fuera de ventana o falta una versión intermedia → dispara `ApplyFullSnapshotUseCase` (reutiliza #5)
+- [ ] Estado observable de sincronización (`OK`, `RECONSTRUIDO_POR_DISCONTINUIDAD`, `ERROR`) — base del Milestone 5
+- [ ] Test: reproducir el escenario exacto de la sección 18.2 (local=3, current=7, oldest=4 → snapshot, nunca `changes:4`)
+
+---
+
+## Milestone 4 — Búsqueda y filtros
+
+Cubre evidencia mínima: *"búsquedas resueltas sobre datos locales"* + *"funcionamiento de los filtros obligatorios"*.
+
+### #8 decision: criterio de "disponibilidad" para el filtro `[decision-needed]`
+No es código — es resolver con un ADR qué significa exactamente "disponibilidad" (¿algún horario habilitado? ¿en un rango de fechas?) antes de que el #9 lo implemente. Bloquea a #9.
+
+### #9 feat: búsqueda de profesionales con filtros obligatorios `[feature]`
+- [ ] Caso de uso `SearchProfessionalsUseCase`: categoría, nombre, estado habilitado, disponibilidad (según #8)
+- [ ] Adaptador REST protegido con JWT — usuario final si KMP consulta directo, técnico inter-servicios si es turnos quien proxea (confirmar decisión pendiente)
+- [ ] Test: filtros combinados y verificación de que nunca se llama a la cátedra por búsqueda
+
+---
+
+## Milestone 5 — Seguridad y robustez inter-servicios
+
+Cada uno es una funcionalidad transversal autocontenida — issue propio, commit propio.
+
+### #10 feat: JWT inter-servicios para servicio-turnos `[security]`
+Según la decisión ya tomada en `ADR-0002` (propagación de identidad).
+
+### #11 feat: resiliencia ante indisponibilidad de cátedra `[feature]`
+Timeouts + reintentos acotados al llamar REST/Redis/Kafka de cátedra. Las búsquedas siguen funcionando con la última copia local (sección 8).
+
+### #12 feat: endpoint de estado y errores de sincronización `[feature]`
+Expone el estado guardado en #7 (sección 4.1: *"informar el estado y los errores de sincronización"*).
+
+### #13 feat: CORS y validación de entrada `[security]`
+CORS según clientes permitidos + validación de DTOs en cada endpoint público.
+
+---
+
+## Milestone 6 — Documentación y cierre
+
+### #14 docs: README reproducible `[docs]`
+### #15 docs: diagrama de arquitectura hexagonal del servicio `[docs]`
+### #16 docs: contrato REST expuesto a servicio-turnos (DTOs, auth, errores) `[docs]`
+### #17 docs: checklist final de evidencias mínimas de catálogo (sección 11) `[docs]`
