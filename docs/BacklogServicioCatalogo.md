@@ -1,6 +1,8 @@
 # Backlog — servicio de catálogo y sincronización
 
-> v2: un issue = un caso de uso/funcionalidad = un commit o PR coherente. El desglose por capa hexagonal (puerto/adaptador/dominio/test) vive como checklist *dentro* de cada issue, no como issues separados — así el historial de commits queda legible por funcionalidad, tal como pide la sección 13.1 del enunciado.
+> Notación: `E §x` = `PROJECT_STATEMENT`, `I §x` = `INTEGRATION_REFERENCE` (ver `fuentes.md`).
+
+> v2: un issue = un caso de uso/funcionalidad = un commit o PR coherente. El desglose por capa hexagonal (puerto/adaptador/dominio/test) vive como checklist *dentro* de cada issue, no como issues separados — así el historial de commits queda legible por funcionalidad, tal como pide E §13.1.
 
 ## Labels sugeridos
 
@@ -13,8 +15,9 @@
 - Un PR no se mergea si el sistema queda en un estado a medio implementar — el caso de uso tiene que funcionar de punta a punta (aunque sea con lo mínimo) antes de cerrar el issue.
 - DoD por issue, salvo que diga lo contrario:
   - [ ] Todos los ítems del checklist interno resueltos
-  - [ ] Código en la capa correcta según `docs/arquitecturaHexagonalServicioCatalogo`
+  - [ ] Código en la capa correcta según `docs/arquitecturaHexagonalServicioCatalogo.md`
   - [ ] Al menos un test que cubra el caso de uso
+  - [ ] `./mvnw test` en verde (incluye `ArchitectureTest`, que no se puede esquivar)
   - [ ] Sin secretos ni credenciales hardcodeadas
   - [ ] docs/ actualizado si el issue cambia un contrato externo
 
@@ -25,7 +28,7 @@
 No son casos de uso funcionales, son la plomería previa — cada uno ya es un commit natural propio (`chore:`).
 
 ### #1 chore: setup del proyecto + esqueleto hexagonal `[chore]`
-Proyecto Spring Boot inicial + carpetas `domain/`, `adapter/`, `config/` vacías, con un test de arquitectura (ArchUnit) que falle si `domain` importa de `adapter` o de Spring/JPA.
+Proyecto Spring Boot inicial + estructura de capas según `docs/arquitecturaHexagonalServicioCatalogo`: `catalog/{domain,application,infrastructure}` y `config/`, vacías. Las siete reglas de dependencia van en `ArchitectureRules`/`ArchitectureTest` (ArchUnit), y `ArchitectureRulesFixtureTest` comprueba con clases de prueba que cada regla detecta una violación real — si no, el test verde no probaría nada. No requiere ninguna clase de dominio: la guarda se verifica con fixtures.
 
 ### #2 chore: Docker Compose local `[chore]`
 PostgreSQL propio + variables de entorno externalizadas (`application.yml` con placeholders, `.env.example`).
@@ -40,11 +43,11 @@ PostgreSQL propio + variables de entorno externalizadas (`application.yml` con p
 
 ## Milestone 1 — Sincronización completa
 
-Cubre evidencia mínima: *"una inicialización desde snapshot"* (sección 11).
+Cubre evidencia mínima: *"una inicialización desde snapshot"* (E §11).
 
 ### #5 feat: sincronización completa del catálogo desde snapshot `[feature]`
 - [ ] Puerto `CatedraSnapshotPort` + adaptador REST (`GET /api/synchronization/snapshot`, JWT técnico)
-- [ ] Caso de uso `ApplyFullSnapshotUseCase`: aplica versión + 3 colecciones de forma transaccional (sección 6.1)
+- [ ] Caso de uso `ApplyFullSnapshotUseCase`: aplica versión + 3 colecciones de forma transaccional (E §6.1)
 - [ ] Disparo de la sincronización completa (al bootear con base vacía, o endpoint interno)
 - [ ] Test: si falla a mitad de camino, la versión local no avanza
 
@@ -57,7 +60,7 @@ Cubre evidencia mínima: *"una actualización incremental del catálogo"* + *"pr
 ### #6 feat: sincronización incremental de catálogo vía Kafka + Redis `[feature]`
 - [ ] Adaptador Kafka de entrada: listener de `CatalogUpdated` en `catedra.catalog.{groupId}`
 - [ ] Puerto `CatedraCatalogReadPort` + adaptador Redis (metadata, Hashes, `changes:{version}`)
-- [ ] Caso de uso `ApplyIncrementalChangeUseCase`: aplica en orden, avanza versión solo tras éxito total (sección 6.2)
+- [ ] Caso de uso `ApplyIncrementalChangeUseCase`: aplica en orden, avanza versión solo tras éxito total (E §6.2)
 - [ ] Deduplicación por `eventId` (evento repetido no reaplica efectos)
 - [ ] Manejo de versión fuera de orden (no aplicar fuera de secuencia)
 - [ ] Test: mismo evento procesado dos veces produce el mismo estado final que procesarlo una vez
@@ -72,7 +75,7 @@ Cubre evidencia mínima: *"recuperación mediante snapshot luego de una disconti
 - [ ] Chequeo de versión local vs `oldestAvailableVersion` antes de intentar incremental
 - [ ] Si está fuera de ventana o falta una versión intermedia → dispara `ApplyFullSnapshotUseCase` (reutiliza #5)
 - [ ] Estado observable de sincronización (`OK`, `RECONSTRUIDO_POR_DISCONTINUIDAD`, `ERROR`) — base del Milestone 5
-- [ ] Test: reproducir el escenario exacto de la sección 18.2 (local=3, current=7, oldest=4 → snapshot, nunca `changes:4`)
+- [ ] Test: reproducir el escenario exacto de I §18.2 (local=3, current=7, oldest=4 → snapshot, nunca `changes:4`)
 
 ---
 
@@ -98,10 +101,10 @@ Cada uno es una funcionalidad transversal autocontenida — issue propio, commit
 Según la decisión ya tomada en `ADR-0002` (propagación de identidad).
 
 ### #11 feat: resiliencia ante indisponibilidad de cátedra `[feature]`
-Timeouts + reintentos acotados al llamar REST/Redis/Kafka de cátedra. Las búsquedas siguen funcionando con la última copia local (sección 8).
+Timeouts + reintentos acotados al llamar REST/Redis/Kafka de cátedra. Las búsquedas siguen funcionando con la última copia local (E §8).
 
 ### #12 feat: endpoint de estado y errores de sincronización `[feature]`
-Expone el estado guardado en #7 (sección 4.1: *"informar el estado y los errores de sincronización"*).
+Expone el estado guardado en #7 (E §4.1: *"informar el estado y los errores de sincronización"*).
 
 ### #13 feat: CORS y validación de entrada `[security]`
 CORS según clientes permitidos + validación de DTOs en cada endpoint público.
@@ -113,4 +116,4 @@ CORS según clientes permitidos + validación de DTOs en cada endpoint público.
 ### #14 docs: README reproducible `[docs]`
 ### #15 docs: diagrama de arquitectura hexagonal del servicio `[docs]`
 ### #16 docs: contrato REST expuesto a servicio-turnos (DTOs, auth, errores) `[docs]`
-### #17 docs: checklist final de evidencias mínimas de catálogo (sección 11) `[docs]`
+### #17 docs: checklist final de evidencias mínimas de catálogo (E §11) `[docs]`
