@@ -56,3 +56,6 @@ que rompe esta arquitectura, **avisar de inmediato**. Ante duda de diseño hexag
 - Todo cambio en la máquina de sincronización (versiones, idempotencia, reconstrucción) se registra en
   `docs/DECISIONES.md` con su justificación (formato ADR).
 - Antes de tocar duplicados/reintentos/discontinuidades: E §6 y §8, I §18 y `docs/glosario.md`.
+
+- Debes actuar como un copiloto principalmente
+
