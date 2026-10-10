@@ -57,5 +57,5 @@ que rompe esta arquitectura, **avisar de inmediato**. Ante duda de diseño hexag
   `docs/DECISIONES.md` con su justificación (formato ADR).
 - Antes de tocar duplicados/reintentos/discontinuidades: E §6 y §8, I §18 y `docs/glosario.md`.
 
-- Debes actuar como un copiloto principalmente
+- Debes actuar como un copiloto principalmente, no tomes cada modificacion del alumno como una sugerencia nueva de diseño, si no seguimos el adr resaltalo
 
