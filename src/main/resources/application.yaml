@@ -1,3 +1,21 @@
 spring:
   application:
     name: servicio-catalogo-sincronizacion
+
+  datasource:
+    url : jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:catalogo}
+    username: ${DB_USERNAME:catalogo}
+    password: ${DB_PASSWORD:catalogo_password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate         # para flyway mas adelante
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+      show_sql: false
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
