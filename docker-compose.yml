@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: catalogo_postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-catalogo}
+      POSTGRES_USER: "${DB_USERNAME:?Falta DB_USERNAME en el .env (copiá .env.example)}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?Falta DB_PASSWORD en el .env (copiá .env.example)}"
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME:-catalogo}"]
+      interval: 5s
+      timeout: 5s
+      retries : 5
+    restart : unless-stopped
+
+volumes:
+  postgres_data:
+
+
