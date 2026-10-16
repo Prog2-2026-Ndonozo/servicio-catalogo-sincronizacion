@@ -33,14 +33,14 @@ Lombok · ArchUnit.
 ```bash
 cp .env.example .env          # una sola vez; completá DB_PASSWORD (el .env no se versiona)
 docker compose up -d          # PostgreSQL local con volumen persistente
-set -a; source .env; set +a   # carga las variables del .env en esta terminal
 ./mvnw spring-boot:run        # ejecución local
 
 ./mvnw test                   # tests, incluidas las reglas de arquitectura
 ```
 
-Docker Compose lee el `.env` por sí solo, pero Spring Boot **no**: por eso el paso `source .env`. Sin él la app
-usa los valores por defecto de `application.yaml` y puede no coincidir con la base que creó Compose.
+El mismo `.env` lo leen Docker Compose y la aplicación (`spring.config.import` en `application.yaml`), así que las
+credenciales se definen en un solo lugar. Si una variable también existe en el entorno del sistema, esa gana.
+`DB_PASSWORD` no tiene valor por defecto: sin ella, ni Compose ni la app arrancan.
 
 ### Base de datos local
 
