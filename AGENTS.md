@@ -37,7 +37,7 @@ Skill (relativo a este repo): `../../hexagonal/.agents/skills/hexagonal-catalogo
 Java 25, Spring Boot 4.1, Maven (`./mvnw`), PostgreSQL propio y exclusivo (prohibido H2/SQLite/embebidas como
 persistencia principal, E §3), Kafka (consumer `catedra.catalog.{groupId}`), Redis (lectura `catedra:sync:*`;
 namespace propio `alumnos:{groupId}:*` solo para estado auxiliar), springdoc, Lombok, ArchUnit.
-Comandos: `./mvnw test` · `./mvnw spring-boot:run` · `docker compose up -d` (pendiente, issue #2).
+Comandos: `./mvnw test` · `./mvnw spring-boot:run` · `docker compose up -d` .
 
 ## Alcance
 Hace: copia local del catálogo, versión aplicada, sync completa e incremental, detección de discontinuidad,
@@ -56,6 +56,6 @@ que rompe esta arquitectura, **avisar de inmediato**. Ante duda de diseño hexag
 - Todo cambio en la máquina de sincronización (versiones, idempotencia, reconstrucción) se registra en
   `docs/DECISIONES.md` con su justificación (formato ADR).
 - Antes de tocar duplicados/reintentos/discontinuidades: E §6 y §8, I §18 y `docs/glosario.md`.
-
+- La herramienta que se utilice para desarrollar solo puede utilizar git para recopilar informacion previa, no para eliminar/modificar/crear commits
 - Debes actuar como un copiloto principalmente, no tomes cada modificacion del alumno como una sugerencia nueva de diseño, si no seguimos el adr resaltalo
 

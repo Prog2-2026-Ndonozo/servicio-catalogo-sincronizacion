@@ -25,18 +25,32 @@ Lombok · ArchUnit.
 ## Requisitos
 
 - JDK 25
-- Docker y Docker Compose (para PostgreSQL local; *pendiente: issue #2*)
+- Docker y Docker Compose (para PostgreSQL local)
 - Cuenta técnica registrada en la cátedra y su JWT (I §5). Se guarda en `cuenta_tecnica.json`, que **no** se versiona.
 
 ## Ejecutar
 
 ```bash
-./mvnw test                # tests, incluidas las reglas de arquitectura
-./mvnw spring-boot:run     # ejecución local
+cp .env.example .env          # una sola vez; completá DB_PASSWORD (el .env no se versiona)
+docker compose up -d          # PostgreSQL local con volumen persistente
+set -a; source .env; set +a   # carga las variables del .env en esta terminal
+./mvnw spring-boot:run        # ejecución local
+
+./mvnw test                   # tests, incluidas las reglas de arquitectura
 ```
 
-Configuración por variables de entorno (hosts de Redis/Kafka/API de la cátedra, credenciales): se externalizan en
-la issue #2 (`.env.example`). Ningún valor real se sube al repositorio.
+Docker Compose lee el `.env` por sí solo, pero Spring Boot **no**: por eso el paso `source .env`. Sin él la app
+usa los valores por defecto de `application.yaml` y puede no coincidir con la base que creó Compose.
+
+### Base de datos local
+
+Variables: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME` y `DB_PASSWORD` (ver `.env.example`). Las de Redis, Kafka
+y la API de la cátedra se agregan en los issues que las usan. Ningún valor real se sube al repositorio.
+
+- Los datos viven en el volumen `postgres_data` y sobreviven a `docker compose down` y `up`.
+- PostgreSQL toma el usuario y la contraseña **solo al crear el volumen por primera vez**. Cambiar el `.env`
+  después no los modifica.
+- Para empezar de cero: `docker compose down -v` (**borra todos los datos**).
 
 ## Arquitectura
 
