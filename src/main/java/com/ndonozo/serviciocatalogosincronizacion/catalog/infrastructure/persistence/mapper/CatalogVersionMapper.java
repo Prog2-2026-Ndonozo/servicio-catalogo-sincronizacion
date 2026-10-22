@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CatalogVersionMapper {
-    private static final short SINGLE_ROW_ID = 1;
+
 
     public CatalogVersion toDomain(CatalogVersionEntity entity){
         if(entity == null){
@@ -23,7 +23,7 @@ public class CatalogVersionMapper {
 
         CatalogVersionEntity entity = new CatalogVersionEntity();
         entity.setSnapshotVersion(catalogVersion.getSnapshotVersion());
-        entity.setId(SINGLE_ROW_ID);
+        entity.setId(CatalogVersionEntity.SINGLE_ROW_ID);
         return entity;
     }
 

@@ -17,8 +17,9 @@ import lombok.Setter;
 @AllArgsConstructor
 
 public class CatalogVersionEntity {
+    public static final short SINGLE_ROW_ID = 1;
     @Id
-    private short id;;
+    private short id;
     private long snapshotVersion;
 
 }
