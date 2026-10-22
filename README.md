@@ -19,7 +19,7 @@ otro texto de este repo:
 
 ## Stack
 
-Java 25 · Spring Boot 4.1 · Maven · PostgreSQL · Spring Data JPA · Kafka · Redis · springdoc (OpenAPI) ·
+Java 25 · Spring Boot 4.1 · Maven · PostgreSQL · Flyway · Spring Data JPA · Kafka · Redis · springdoc (OpenAPI) ·
 Lombok · ArchUnit.
 
 ## Requisitos
@@ -51,6 +51,19 @@ y la API de la cátedra se agregan en los issues que las usan. Ningún valor rea
 - PostgreSQL toma el usuario y la contraseña **solo al crear el volumen por primera vez**. Cambiar el `.env`
   después no los modifica.
 - Para empezar de cero: `docker compose down -v` (**borra todos los datos**).
+
+### Migraciones
+
+El esquema lo crea Flyway con SQL plano, en `src/main/resources/db/migration` (`V1__crear_esquema_inicial.sql`,
+`V2__...sql`, etc.). Se aplican solas al arrancar la aplicación. Hibernate corre en `ddl-auto: validate`: no crea
+ni modifica nada, solo comprueba que las entidades coincidan con las tablas.
+
+- Una migración ya aplicada **no se edita**: Flyway se niega a arrancar si cambia su contenido. Un cambio de
+  esquema se hace con una migración nueva.
+- Las claves foráneas son `DEFERRABLE INITIALLY DEFERRED`: la base las verifica al confirmar la transacción, por
+  lo que dentro de una misma transacción el orden de inserción no importa (ver `docs/DECISIONES.md`).
+- Si te equivocás en una migración durante el desarrollo y la base no tiene datos que importen:
+  `docker compose down -v` y volver a levantar (**borra todos los datos**).
 
 ## Arquitectura
 

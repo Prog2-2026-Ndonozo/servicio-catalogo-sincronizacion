@@ -42,6 +42,8 @@ servicio-catalogo/
     │   │   │   ├── ProfessionalCategory.java
     │   │   │   ├── WeeklySchedule.java
     │   │   │   └── CatalogVersion.java
+    │   │   ├── exception/                       ← error de validación del modelo (ADR-0016)
+    │   │   │   └── InvalidCatalogDataException.java
     │   │   └── ports/
     │   │       ├── in/                          ← un puerto por caso de uso
     │   │       │   ├── SearchProfessionalsUseCase.java
@@ -66,9 +68,11 @@ servicio-catalogo/
     │   │       └── GetSyncStatusUseCaseImpl.java
     │   └── infrastructure/
     │       ├── persistence/                     ← PostgreSQL
-    │       │   ├── entity/                      CategoryEntity, ProfessionalEntity, WeeklyScheduleEntity
-    │       │   ├── repository/                  JpaCatalogRepository
-    │       │   ├── mapper/                      ProfessionalMapper, ...
+    │       │   ├── entity/                      ProfessionalCategoryEntity, ProfessionalEntity,
+    │       │   │                                WeeklyScheduleEntity, CatalogVersionEntity
+    │       │   ├── repository/                  JpaProfessionalCategoryRepository, JpaProfessionalRepository,
+    │       │   │                                JpaWeeklyScheduleRepository, JpaCatalogVersionRepository
+    │       │   ├── mapper/                      un mapper por concepto (dominio ↔ entidad)
     │       │   └── adapter/                     JpaCatalogRepositoryAdapter → CatalogRepositoryPort
     │       ├── catedrarest/                     ← GET /api/synchronization/snapshot
     │       │   ├── client/                      CatedraRestClient
@@ -97,6 +101,9 @@ servicio-catalogo/
 Las carpetas se crean recién hasta el nivel que nombra una decisión. Las hojas
 (`entity/`, `repository/`, `mapper/`, `adapter/`, `client/`, `dto/`, `controller/`)
 nacen con el primer archivo de esa tecnología, en la issue que la toque.
+
+Las migraciones de Flyway no están en este árbol: viven en `src/main/resources/db/migration/`
+(`V1__crear_esquema_inicial.sql`).
 
 ## Las siete reglas, y quién las verifica
 
@@ -158,3 +165,8 @@ como único consumidor de la búsqueda (ver `DECISIONES.md`).
   `SyncResult(appliedVersion, categoriesCount, professionalsCount, schedulesCount)`.
 - **Drivers por la fachada:** `CatalogUpdatedListener` inyecta `CatalogSyncService`, nunca
   `ApplyIncrementalChangeUseCase`.
+- **Persistencia:** el esquema lo crea Flyway (ADR-0017) y las claves foráneas son diferidas (ADR-0018). La
+  transacción la abre el caso de uso, no el adaptador: `CatalogRepositoryPort` guarda por ID (insertar o
+  actualizar) y no valida referencias entre colecciones; de eso se encarga la base al confirmar. La versión local
+  vive en `catalog_version`, una tabla de una sola fila que arranca en `0` por migración; el adaptador la lee y
+  falla con un mensaje claro si no existe.
