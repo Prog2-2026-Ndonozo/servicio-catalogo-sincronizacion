@@ -26,12 +26,12 @@ Lombok · ArchUnit.
 
 - JDK 25
 - Docker y Docker Compose (para PostgreSQL local)
-- Cuenta técnica registrada en la cátedra y su JWT (I §5). Se guarda en `cuenta_tecnica.json`, que **no** se versiona.
+- Cuenta técnica registrada en la cátedra y su JWT (I §5). Va en el `.env` como `CATEDRA_JWT`, que **no** se versiona.
 
 ## Ejecutar
 
 ```bash
-cp .env.example .env          # una sola vez; completá DB_PASSWORD (el .env no se versiona)
+cp .env.example .env          # una sola vez; completá DB_PASSWORD y las CATEDRA_* (el .env no se versiona)
 docker compose up -d          # PostgreSQL local con volumen persistente
 ./mvnw spring-boot:run        # ejecución local
 
@@ -44,13 +44,18 @@ credenciales se definen en un solo lugar. Si una variable también existe en el 
 
 ### Base de datos local
 
-Variables: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME` y `DB_PASSWORD` (ver `.env.example`). Las de Redis, Kafka
-y la API de la cátedra se agregan en los issues que las usan. Ningún valor real se sube al repositorio.
+Variables: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME` y `DB_PASSWORD` (ver `.env.example`). Las de Redis y Kafka
+se agregan en los issues que las usan. Ningún valor real se sube al repositorio.
 
 - Los datos viven en el volumen `postgres_data` y sobreviven a `docker compose down` y `up`.
 - PostgreSQL toma el usuario y la contraseña **solo al crear el volumen por primera vez**. Cambiar el `.env`
   después no los modifica.
 - Para empezar de cero: `docker compose down -v` (**borra todos los datos**).
+
+### API de la cátedra
+
+Variables: `CATEDRA_BASE_URL` (URL base del servicio Java de la cátedra) y `CATEDRA_JWT` (JWT de la cuenta técnica).
+Son obligatorias: sin ellas la aplicación no arranca. El JWT nunca se loguea ni se imprime (ADR-0020).
 
 ### Migraciones
 
