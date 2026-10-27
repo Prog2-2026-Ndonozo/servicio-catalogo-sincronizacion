@@ -52,7 +52,7 @@ que rompe esta arquitectura, **avisar de inmediato**. Ante duda de diseño hexag
 ## Reglas para el agente
 - PROHIBIDO commitear, crear ramas o pushear sin confirmación previa. Cuando toque commitear, recordarle a
   Nehuen usar **Conventional Commits**.
-- El JWT técnico de cátedra jamás se loguea, versiona ni expone (vive en `cuenta_tecnica.json`, gitignoreado).
+- El JWT técnico de cátedra jamás se loguea, versiona ni expone (vive en el `.env` como `CATEDRA_JWT`, gitignoreado).
 - Todo cambio en la máquina de sincronización (versiones, idempotencia, reconstrucción) se registra en
   `docs/DECISIONES.md` con su justificación (formato ADR).
 - Antes de tocar duplicados/reintentos/discontinuidades: E §6 y §8, I §18 y `docs/glosario.md`.

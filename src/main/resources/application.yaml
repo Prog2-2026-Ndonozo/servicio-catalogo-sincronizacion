@@ -18,5 +18,8 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
       show_sql: false
+catedra:
+  base-url: ${CATEDRA_BASE_URL}
+  jwt: ${CATEDRA_JWT}
 
 

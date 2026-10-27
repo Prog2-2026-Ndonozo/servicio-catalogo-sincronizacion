@@ -19,6 +19,9 @@ Registro de decisiones (E §10 y §12). Cada decisión importante tiene su ADR e
 | Excepción de validación del modelo en `domain/` | Tipo propio, lanzado por el modelo; **desvío de la regla 1 de excepciones del skill** | `adr/0016-excepcion-de-validacion-del-dominio.md` |
 | Flyway para las migraciones | SQL plano en `db/migration`; Hibernate en `ddl-auto: validate` | `adr/0017-flyway-para-migraciones-de-bd.md` |
 | Claves foráneas diferidas y reglas de esquema | FK `DEFERRABLE INITIALLY DEFERRED`; versión local en la misma base; ID de la cátedra como PK; índices en las FK | `adr/0018-claves-foraneas-diferidas.md` |
+| `RestClient` como cliente HTTP hacia la cátedra | Cliente síncrono de Spring; sin WebFlux; se prueba con `MockRestServiceServer` | `adr/0019-restclient-como-cliente-http-de-la-catedra.md` |
+| Credenciales de la cátedra en el `.env` | `CATEDRA_BASE_URL` y `CATEDRA_JWT` vía `@ConfigurationProperties`; el JWT solo existe en `config/` y no se imprime | `adr/0020-credenciales-de-la-catedra-en-configuracion.md` |
+| `CatalogSnapshot` como resultado del puerto | Inmutable, `long snapshotVersion` + 3 listas con copia defensiva; no reutiliza `CatalogVersion` | `adr/0021-catalogsnapshot-como-resultado-del-puerto.md` |
 | Datos inválidos de la cátedra | Se asume que llegan válidos; sin manejo especial. Si llega uno inválido, falla la unidad de trabajo y la versión local no avanza | `adr/0014-validaciones-del-modelo.md` |
 | Versión 0 | No se publica (el profesor lo consideró improbable); `0` es el estado inicial, base vacía | `adr/0014-validaciones-del-modelo.md` |
 

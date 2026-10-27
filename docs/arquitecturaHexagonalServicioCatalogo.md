@@ -23,7 +23,7 @@ infrastructure  ─────►  application  ─────►  domain
 - `domain/`: modelo y puertos. Solo `java.*` y Lombok. Cero Spring, JPA, Jakarta, Jackson.
 - `application/`: casos de uso (`@Component`), fachadas (`@Service`), excepciones. No conoce `infrastructure/`.
 - `infrastructure/`: REST, JPA, Kafka, Redis, cliente HTTP. Reemplazable sin tocar lo de adentro.
-- `config/` (fuera de `catalog/`): composition root; cablea clientes Redis, `WebClient`, seguridad.
+- `config/` (fuera de `catalog/`): composition root; cablea clientes Redis, `RestClient`, seguridad.
 
 Un solo módulo (`catalog`): sincronización y búsqueda comparten modelo y puerto de repositorio; partirlas
 obligaría a duplicar conceptos o a crear un `shared`. Si hiciera falta separarlas, el módulo es un
@@ -95,7 +95,7 @@ servicio-catalogo/
         ├── SecurityConfig.java     (JWT: usuario final en REST propio, técnico inter-servicios y hacia cátedra)
         ├── KafkaConfig.java
         ├── RedisConfig.java
-        └── WebClientConfig.java
+        └── RestClientConfig.java, CatedraProperties.java
 ```
 
 Las carpetas se crean recién hasta el nivel que nombra una decisión. Las hojas
