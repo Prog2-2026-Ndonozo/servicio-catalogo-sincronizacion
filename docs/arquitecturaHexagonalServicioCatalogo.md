@@ -43,7 +43,8 @@ servicio-catalogo/
     │   │   │   ├── WeeklySchedule.java
     │   │   │   └── CatalogVersion.java
     │   │   ├── exception/                       ← error de validación del modelo (ADR-0016)
-    │   │   │   └── InvalidCatalogDataException.java
+    │   │   │   ├── InvalidCatalogDataException.java
+    │   │   │   └── CatedraUnavailableException.java   ← fallo al obtener el snapshot (ADR-0022)
     │   │   └── ports/
     │   │       ├── in/                          ← un puerto por caso de uso
     │   │       │   ├── SearchProfessionalsUseCase.java

@@ -43,7 +43,7 @@ class CatedraSnapshotRestAdapterTest {
     // isSameAs, la misma instancia
 
 
-    
+
     @Test
     void traduce_lo_que_devuelve_el_cliente_y_entrega_el_resultado_del_mapper() {
         CatalogSnapshot snapshot = CatalogSnapshot.builder()
