@@ -12,12 +12,18 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate          
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
       show_sql: false
+
+  http:
+    clients:
+      connect-timeout: 5s
+      read-timeout: 30s
+
 catedra:
   base-url: ${CATEDRA_BASE_URL}
   jwt: ${CATEDRA_JWT}
