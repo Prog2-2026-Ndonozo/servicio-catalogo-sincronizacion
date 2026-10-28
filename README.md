@@ -57,6 +57,10 @@ se agregan en los issues que las usan. Ningún valor real se sube al repositorio
 Variables: `CATEDRA_BASE_URL` (URL base del servicio Java de la cátedra) y `CATEDRA_JWT` (JWT de la cuenta técnica).
 Son obligatorias: sin ellas la aplicación no arranca. El JWT nunca se loguea ni se imprime (ADR-0020).
 
+Tiempos de espera de los clientes HTTP, en `application.yaml` (`spring.http.clients.*`, ADR-0019): conexión 5 s y
+lectura 30 s. Si la cátedra es más lenta, subí `read-timeout`. Cuando la cátedra no responde, devuelve un error o
+manda un cuerpo ilegible, el servicio lo trata como "cátedra no disponible" y no modifica el catálogo local (ADR-0022).
+
 ### Migraciones
 
 El esquema lo crea Flyway con SQL plano, en `src/main/resources/db/migration` (`V1__crear_esquema_inicial.sql`,

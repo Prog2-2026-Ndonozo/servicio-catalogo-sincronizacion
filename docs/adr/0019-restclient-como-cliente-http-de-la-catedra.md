@@ -40,3 +40,10 @@ testear.
 - El adaptador se prueba con `MockRestServiceServer`; no hacen falta tests contra la red de la cátedra.
 - `docs/arquitecturaHexagonalServicioCatalogo.md` nombra `RestClientConfig` (antes `WebClientConfig`).
 - Los clientes de Redis y Kafka no se ven afectados.
+- **Dependencia:** Spring Boot 4 separó la auto-configuración del cliente HTTP en módulos propios. Hace falta
+  `spring-boot-starter-restclient` en el `pom.xml`; sin él no existe el bean `RestClient.Builder` y la
+  aplicación no arranca.
+- **Timeouts:** el cliente no tiene tiempos por defecto, así que se configuran en `application.yaml` con
+  `spring.http.clients.connect-timeout` (5 s) y `spring.http.clients.read-timeout` (30 s). No se usan las
+  propiedades `spring.http.client.*`, deprecadas desde Spring Boot 4.0. Se aplican a todo cliente HTTP que
+  arme Boot. `RestClientConfigTimeoutTest` comprueba que la propiedad realmente corta una respuesta lenta.
