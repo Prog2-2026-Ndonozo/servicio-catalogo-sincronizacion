@@ -26,7 +26,9 @@ public class StartupSyncRunner implements ApplicationRunner {
                 log.info("Catalogo ya sincronizado: no se pide snapshot al arrancar");
             }
         } catch(CatedraUnavailableException e){
-            log.warn("Catedra no disponible al arrancar (status={}). El servicio sigue activo sin catalogo.", e.getHttpStatus());
+            Throwable causa = e.getCause();
+            log.warn("Catedra no disponible al arrancar (status={}). El servicio sigue activo sin catalogo.", e.getHttpStatus(),
+                    causa == null ? "sin causa" : causa.toString());log.debug("Detalle del fallo de sincronizacion inicial", e);
         }
     }
 }
