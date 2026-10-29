@@ -27,5 +27,6 @@ spring:
 catedra:
   base-url: ${CATEDRA_BASE_URL}
   jwt: ${CATEDRA_JWT}
+  sync-on-startup: true
 
 

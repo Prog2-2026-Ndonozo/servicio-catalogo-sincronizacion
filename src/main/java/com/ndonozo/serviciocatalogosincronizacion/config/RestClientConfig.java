@@ -11,7 +11,7 @@ import org.springframework.http.HttpHeaders;
 @EnableConfigurationProperties(CatedraProperties.class)
 public class RestClientConfig {
     @Bean
-    public RestClient catedraRestClient(RestClient.Builder builder, CatedraProperties properties){
+    public RestClient catedraHttpClient(RestClient.Builder builder, CatedraProperties properties){
         return builder
                 .baseUrl(properties.baseUrl())
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + properties.jwt()).build();

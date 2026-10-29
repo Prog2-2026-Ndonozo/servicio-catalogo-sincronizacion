@@ -61,6 +61,11 @@ Tiempos de espera de los clientes HTTP, en `application.yaml` (`spring.http.clie
 lectura 30 s. Si la cátedra es más lenta, subí `read-timeout`. Cuando la cátedra no responde, devuelve un error o
 manda un cuerpo ilegible, el servicio lo trata como "cátedra no disponible" y no modifica el catálogo local (ADR-0022).
 
+Al arrancar, si la base nunca fue sincronizada (versión local 0), el servicio pide el snapshot completo a la cátedra
+y lo aplica en una transacción (ADR-0023, ADR-0024). Si la cátedra no responde, el servicio **igual arranca**, con
+el catálogo vacío y una advertencia en el log (ADR-0025). Para no intentar la sincronización inicial (tests, desarrollo
+sin red) usá `catedra.sync-on-startup=false` en el `application.yaml`.
+
 ### Migraciones
 
 El esquema lo crea Flyway con SQL plano, en `src/main/resources/db/migration` (`V1__crear_esquema_inicial.sql`,

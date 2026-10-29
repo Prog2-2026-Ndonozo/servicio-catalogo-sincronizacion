@@ -62,7 +62,7 @@ class CatedraRestClientTest {
         RestClient.Builder builder = RestClient.builder();
         server = MockRestServiceServer.bindTo(builder).build();
         RestClient restClient = new RestClientConfig()
-                .catedraRestClient(builder, new CatedraProperties(BASE_URL, JWT));
+                .catedraHttpClient(builder, new CatedraProperties(BASE_URL, JWT));
         client = new CatedraRestClient(restClient);
     }
 
