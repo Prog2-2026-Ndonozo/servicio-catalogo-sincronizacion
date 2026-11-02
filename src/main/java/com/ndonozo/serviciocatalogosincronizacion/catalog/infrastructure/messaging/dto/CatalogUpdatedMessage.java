@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.Instant;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record CatalogUpdatedDto(
+public record CatalogUpdatedMessage(
         String eventId,
         String eventType,
         long newVersion,
-        Instant ocurredAt,
+        Instant occurredAt,
         String source,
         int schemaVersion
 ) {
