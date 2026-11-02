@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CatalogSyncService {
     private final ApplyFullSnapshotUseCase applyFullSnapshot;
-    private final ApplyIncrementalChangeUseCase applyIncrementalSnapshot;
+    private final ApplyIncrementalChangeUseCase applyIncrementalChange;
     private final CatalogRepositoryPort repository;
 
     public boolean synchronizeIfEmpty(){
@@ -22,8 +22,8 @@ public class CatalogSyncService {
         applyFullSnapshot.applyFullSnapshot();
         return true;
     }
-//    public CatalogVersion applyCatalogUpdate(CatalogUpdate update){
-//        //return applyIncrementalChange.applyIncrementalCHange(update);
-//    }
+   public CatalogVersion applyCatalogUpdate(CatalogUpdate update){
+        return applyIncrementalChange.applyIncrementalChange(update);
+    }
 
 }
