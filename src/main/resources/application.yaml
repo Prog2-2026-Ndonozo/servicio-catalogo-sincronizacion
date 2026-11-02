@@ -24,11 +24,22 @@ spring:
       connect-timeout: 5s
       read-timeout: 30s
 
+  kafka:
+    bootstrap-servers: ${CATEDRA_KAFKA}
+    consumer:
+      group-id: ${CATEDRA_KAFKA_CONSUMER_GROUP}
+
+  data:
+    redis:
+      url: redis://${CATEDRA_REDIS}
+      username: ${CATEDRA_REDIS_USERNAME}
+      password: ${CATEDRA_REDIS_PASSWORD}
+
 catedra:
   base-url: ${CATEDRA_BASE_URL}
   jwt: ${CATEDRA_JWT}
   sync-on-startup: true
-  kafka: ${CATEDRA_KAFKA}
-  redis: ${CATEDRA_REDIS}
+  catalog-topic: ${CATEDRA_KAFKA_CATALOG_TOPIC}
+
 
 
