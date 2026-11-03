@@ -12,14 +12,14 @@ public class CatalogUpdatedMapper {
     private static final int SUPPORTED_SCHEMA_VERSION = 1;
 
     public CatalogUpdate toDomain(CatalogUpdatedMessage message) {
+        if ( message == null){
+            throw new InvalidCatalogDataException("CatalogUpdate message is empty");
+        }
         if (!EVENT_TYPE.equals(message.eventType())) {
             throw new InvalidCatalogDataException("Unexpected eventType: " + message.eventType());
         }
         if (message.schemaVersion() != SUPPORTED_SCHEMA_VERSION){
             throw new InvalidCatalogDataException("Unsupported schemaVersion: " + message.schemaVersion());
-        }
-        if ( message == null){
-            throw new InvalidCatalogDataException("CatalogUpdate message is empty");
         }
         return CatalogUpdate.builder()
                 .eventId(message.eventId())
