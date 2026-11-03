@@ -66,6 +66,25 @@ y lo aplica en una transacción (ADR-0023, ADR-0024). Si la cátedra no responde
 el catálogo vacío y una advertencia en el log (ADR-0025). Para no intentar la sincronización inicial (tests, desarrollo
 sin red) usá `catedra.sync-on-startup=false` en el `application.yaml`.
 
+### Kafka (cambios incrementales)
+
+Variables: `CATEDRA_KAFKA` (`host:puerto` del broker), `CATEDRA_KAFKA_CONSUMER_GROUP` (`alumnos-{groupId}`, el grupo
+de consumo; no es el `groupId` de la integración) y `CATEDRA_KAFKA_CATALOG_TOPIC` (`catedra.catalog.{groupId}`).
+Ninguna es secreta, pero van en el `.env` porque cambian por alumno.
+
+`CatalogUpdatedListener` escucha el topic y entrega cada `CatalogUpdated` a la fachada de sincronización
+(ADR-0026). Un mensaje defectuoso se descarta con una advertencia en el log; un fallo al aplicarlo se reintenta
+unas veces y después se salta. El consumidor usa `auto-offset-reset: earliest`, que solo vale la primera vez que el
+grupo se conecta: para releer desde el principio hay que cambiar el `group-id`. Si el broker no está disponible, la
+aplicación arranca igual y reintenta la conexión. Mientras el caso de uso incremental no esté implementado
+(issue #6), cada evento termina en un error registrado en el log.
+
+### Redis
+
+Variables: `CATEDRA_REDIS` (`host:puerto`), `CATEDRA_REDIS_USERNAME` y `CATEDRA_REDIS_PASSWORD`. El usuario y la
+contraseña son secretos: solo en el `.env`, nunca en el repositorio ni en el log. La lectura de Redis se agrega en
+el issue correspondiente.
+
 ### Migraciones
 
 El esquema lo crea Flyway con SQL plano, en `src/main/resources/db/migration` (`V1__crear_esquema_inicial.sql`,

@@ -1,8 +1,11 @@
 package com.ndonozo.serviciocatalogosincronizacion.catalog.application.service;
 
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.exception.CatedraUnavailableException;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.exception.InvalidCatalogDataException;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogUpdate;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogVersion;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.in.ApplyFullSnapshotUseCase;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.in.ApplyIncrementalChangeUseCase;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatalogRepositoryPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +29,9 @@ class CatalogSyncServiceTest {
     private ApplyFullSnapshotUseCase applyFullSnapshot;
 
     @Mock
+    private ApplyIncrementalChangeUseCase applyIncrementalChange;
+
+    @Mock
     private CatalogRepositoryPort repository;
 
     @InjectMocks
@@ -33,6 +39,50 @@ class CatalogSyncServiceTest {
 
     private static CatalogVersion version(long value) {
         return CatalogVersion.builder().snapshotVersion(value).build();
+    }
+
+    private static CatalogUpdate update(long newVersion) {
+        return CatalogUpdate.builder().eventId("catalog-event-" + newVersion).newVersion(newVersion).build();
+    }
+
+    @Test
+    void aplicar_un_catalog_update_lo_delega_al_caso_de_uso_incremental_y_devuelve_su_version() {
+        CatalogUpdate evento = update(7);
+        CatalogVersion aplicada = version(7);
+        when(applyIncrementalChange.applyIncrementalChange(evento)).thenReturn(aplicada);
+
+        CatalogVersion resultado = service.applyCatalogUpdate(evento);
+
+        assertThat(resultado).isSameAs(aplicada);
+        verify(applyIncrementalChange).applyIncrementalChange(evento);
+    }
+
+    @Test
+    void si_el_caso_de_uso_incremental_falla_la_excepcion_se_propaga_sin_ser_capturada() {
+        CatalogUpdate evento = update(7);
+        InvalidCatalogDataException error = new InvalidCatalogDataException("cambio invalido");
+        when(applyIncrementalChange.applyIncrementalChange(evento)).thenThrow(error);
+
+        assertThatThrownBy(() -> service.applyCatalogUpdate(evento)).isSameAs(error);
+    }
+
+    @Test
+    void aplicar_un_catalog_update_no_toca_el_snapshot_completo_ni_el_repositorio() {
+        CatalogUpdate evento = update(7);
+        when(applyIncrementalChange.applyIncrementalChange(evento)).thenReturn(version(7));
+
+        service.applyCatalogUpdate(evento);
+
+        verifyNoInteractions(applyFullSnapshot, repository);
+    }
+
+    @Test
+    void sincronizar_si_esta_vacio_no_usa_el_caso_de_uso_incremental() {
+        when(repository.getCatalogVersion()).thenReturn(version(0));
+
+        service.synchronizeIfEmpty();
+
+        verifyNoInteractions(applyIncrementalChange);
     }
 
     @Test
