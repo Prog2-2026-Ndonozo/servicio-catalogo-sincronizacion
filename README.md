@@ -44,8 +44,8 @@ credenciales se definen en un solo lugar. Si una variable también existe en el 
 
 ### Base de datos local
 
-Variables: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME` y `DB_PASSWORD` (ver `.env.example`). Las de Redis y Kafka
-se agregan en los issues que las usan. Ningún valor real se sube al repositorio.
+Variables: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME` y `DB_PASSWORD` (ver `.env.example`). Ningún valor real se sube
+al repositorio.
 
 - Los datos viven en el volumen `postgres_data` y sobreviven a `docker compose down` y `up`.
 - PostgreSQL toma el usuario y la contraseña **solo al crear el volumen por primera vez**. Cambiar el `.env`
