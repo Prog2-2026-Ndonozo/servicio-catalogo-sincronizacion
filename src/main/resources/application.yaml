@@ -32,10 +32,12 @@ spring:
 
   data:
     redis:
-      url: redis://${CATEDRA_REDIS}
+      host: ${CATEDRA_REDIS_HOST}
+      port: ${CATEDRA_REDIS_PORT}
       username: ${CATEDRA_REDIS_USERNAME}
       password: ${CATEDRA_REDIS_PASSWORD}
       timeout: 5s
+
 
 catedra:
   base-url: ${CATEDRA_BASE_URL}
