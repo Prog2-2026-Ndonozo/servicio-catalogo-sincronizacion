@@ -27,6 +27,7 @@ Registro de decisiones (E §10 y §12). Cada decisión importante tiene su ADR e
 | Sincronización completa inicial al arrancar | `StartupSyncRunner` → fachada `CatalogSyncService.synchronizeIfEmpty()` si la versión local es 0; se apaga con `catedra.sync-on-startup=false` | `adr/0024-sincronizacion-inicial-al-arrancar.md` |
 | El servicio sigue activo si la cátedra no responde al arrancar | Se captura `CatedraUnavailableException` y se loguea; un dato inválido sí hace fallar el arranque | `adr/0025-el-servicio-sigue-activo-si-la-catedra-no-responde.md` |
 | Listener Kafka de `CatalogUpdated` | Payload `String` parseado por nosotros; mensaje defectuoso se descarta con warning, fallo operativo se propaga (reintentos de Spring Kafka); `auto-offset-reset: earliest` | `adr/0026-listener-kafka-de-catalogupdated.md` |
+| Lectura de Redis de la cátedra | Puerto `CatedraCatalogReadPort`; adaptador sobre `StringRedisTemplate` (`HGETALL` de metadata, `HMGET` por tipo); DTOs propios; fallo de Redis = `CatedraUnavailableException`, dato incoherente = `InvalidCatalogDataException`; timeout de 5 s | `adr/0027-lectura-de-redis-de-la-catedra.md` |
 | Datos inválidos de la cátedra | Se asume que llegan válidos; sin manejo especial. Si llega uno inválido, falla la unidad de trabajo y la versión local no avanza | `adr/0014-validaciones-del-modelo.md` |
 | Versión 0 | No se publica (el profesor lo consideró improbable); `0` es el estado inicial, base vacía | `adr/0014-validaciones-del-modelo.md` |
 

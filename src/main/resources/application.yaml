@@ -35,6 +35,7 @@ spring:
       url: redis://${CATEDRA_REDIS}
       username: ${CATEDRA_REDIS_USERNAME}
       password: ${CATEDRA_REDIS_PASSWORD}
+      timeout: 5s
 
 catedra:
   base-url: ${CATEDRA_BASE_URL}
