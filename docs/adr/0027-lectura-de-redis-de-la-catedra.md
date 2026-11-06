@@ -37,6 +37,10 @@ lectura sobre `catedra:sync:*` (I §14.1).
   una versión distinta de la pedida. Solo la llamada a Redis se envuelve como indisponibilidad: un dato mal
   formado no se confunde con un fallo transitorio.
 - **Sin reintentos en el adaptador.** Reintentar es decisión del caso de uso o del listener.
+- **Conexión por `host` y `port`:** `CATEDRA_REDIS_HOST` y `CATEDRA_REDIS_PORT`, más `username` y `password`. No se
+  usa `spring.data.redis.url`: con `url` presente, Spring Boot ignora `username` y `password` ("Overrides host, port,
+  username, password, and database") y la conexión se abre sin autenticar. Poner las credenciales dentro de la URL
+  las expondría en cualquier registro de configuración y exigiría codificar los caracteres especiales.
 - **Timeout de comando:** `spring.data.redis.timeout: 5s` (el valor por defecto de Lettuce es de 60 s), con el
   mismo criterio de ADR-0019 para el cliente REST.
 
@@ -44,6 +48,9 @@ lectura sobre `catedra:sync:*` (I §14.1).
 - **Conexión perezosa:** Lettuce no abre la conexión al arrancar, sino con el primer comando. La aplicación
   arranca aunque Redis esté caído (coherente con ADR-0025), y una configuración errónea (por ejemplo una
   contraseña incorrecta) recién se detecta en la primera lectura, cuando llega un evento.
+- **Antecedente (2026-11-06):** con `url` más `username` y `password`, la primera prueba con eventos reales falló con
+  `NOAUTH HELLO must be called with the client already authenticated`: los tests unitarios no podían detectarlo
+  y la conexión perezosa lo postergó hasta la primera lectura. Cada evento agotó sus reintentos y se descartó.
 - Que falte un ID es una incoherencia con el contrato, no un dato opcional: el caso de uso no debe avanzar la
   versión local si la lectura no está completa (I §14.5).
 - Las listas devueltas no garantizan un orden respecto de los IDs pedidos más allá del de entrada; el caso de uso
