@@ -1,4 +1,4 @@
-package com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.catedraredis.dtos;
+package com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.catedraredis.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

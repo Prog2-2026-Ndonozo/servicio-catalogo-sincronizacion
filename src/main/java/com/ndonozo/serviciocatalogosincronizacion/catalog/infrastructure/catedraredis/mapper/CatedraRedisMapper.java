@@ -1,14 +1,17 @@
-package com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.catedraredis.mappers;
+package com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.catedraredis.mapper;
 
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.exception.InvalidCatalogDataException;
-import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogChanges;
-import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.Professional;
-import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.VersionWindow;
-import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.catedraredis.dtos.CatalogChangesRedisDto;
-import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.catedraredis.dtos.ProfessionalRedisDto;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.*;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.catedraredis.dto.CatalogChangesRedisDto;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.catedraredis.dto.CategoryRedisDto;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.catedraredis.dto.ProfessionalRedisDto;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.catedraredis.dto.WeeklyScheduleRedisDto;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Map;
+
+import static tools.jackson.databind.util.ClassUtil.name;
 
 @Component
 public class CatedraRedisMapper {
@@ -32,7 +35,7 @@ public class CatedraRedisMapper {
         return CatalogChanges.builder()
                 .version(dto.version())
                 .categoryIds(dto.changes().professionalCategories())
-                .professionalIds(dto.changes().professional())
+                .professionalIds(dto.changes().professionals())
                 .weeklySchedulesIds(dto.changes().weeklySchedules())
                 .build();
     }
@@ -54,5 +57,28 @@ public class CatedraRedisMapper {
         } catch (NumberFormatException e) {
             throw new InvalidCatalogDataException("Redis metadata " + field + " is not a number: " + value);
         }
+    }
+    public ProfessionalCategory toDomain(CategoryRedisDto dto) {
+        return ProfessionalCategory.builder()
+                .id(dto.id())
+                .name(dto.name())
+                .description(dto.description() == null ? "" : dto.description())
+                .enabled(dto.enabled())
+                .createdAt(dto.createdAt())
+                .updatedAt(dto.updatedAt())
+                .build();
+    }
+    public WeeklySchedule toDomain(WeeklyScheduleRedisDto dto){
+        return WeeklySchedule.builder()
+                .id(dto.id())
+                .professionalId(dto.professionalId())
+                .dayOfWeek(dto.dayOfWeek())
+                .startTime(dto.startTime())
+                .endTime(dto.endTime())
+                .slotDurationMinutes(dto.slotDurationMinutes())
+                .enabled(dto.enabled())
+                .createdAt(dto.createdAt())
+                .updatedAt(dto.updatedAt())
+                .build();
     }
 }
