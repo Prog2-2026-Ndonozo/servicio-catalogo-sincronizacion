@@ -15,7 +15,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Comprueba que los JSON de I §14.4 y §14.5 se leen bien. Usa un JsonMapper sin la configuración de
  * Spring Boot, para que ignoreUnknown dependa solo de la anotación de cada DTO.
  */
-class CatedraRedisDtoTest {
+class
+CatedraRedisDtoTest {
 
     private final JsonMapper jsonMapper = JsonMapper.builder().build();
 
