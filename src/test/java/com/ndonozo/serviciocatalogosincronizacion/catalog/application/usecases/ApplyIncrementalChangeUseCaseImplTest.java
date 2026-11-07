@@ -1,12 +1,14 @@
 package com.ndonozo.serviciocatalogosincronizacion.catalog.application.usecases;
 
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.exception.CatedraUnavailableException;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.exception.FullSyncRequiredException;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.exception.InvalidCatalogDataException;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogChanges;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogUpdate;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogVersion;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.Professional;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.ProfessionalCategory;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.VersionWindow;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.WeeklySchedule;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatalogRepositoryPort;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatedraCatalogReadPort;
@@ -29,6 +31,7 @@ import static java.time.DayOfWeek.MONDAY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
@@ -66,6 +69,10 @@ class ApplyIncrementalChangeUseCaseImplTest {
 
     private static CatalogUpdate evento(String eventId, long newVersion) {
         return CatalogUpdate.builder().eventId(eventId).newVersion(newVersion).build();
+    }
+
+    private static VersionWindow ventana(long oldest, long current) {
+        return VersionWindow.builder().oldestAvailableVersion(oldest).currentVersion(current).build();
     }
 
     private static CatalogChanges cambios(long version, List<Long> categorias, List<Long> profesionales,
@@ -134,6 +141,7 @@ class ApplyIncrementalChangeUseCaseImplTest {
     void aplica_el_cambio_de_la_version_siguiente_y_registra_version_y_evento() {
         when(repository.getCatalogVersion()).thenReturn(version(1));
         when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        when(catedra.fetchVersionWindow()).thenReturn(ventana(1, 60));
         when(catedra.fetchChanges(2L)).thenReturn(cambios(2, List.of(), List.of(201L), List.of()));
         List<Professional> profesionales = List.of(profesional(201));
         when(catedra.fetchProfessional(Set.of(201L))).thenReturn(profesionales);
@@ -153,6 +161,7 @@ class ApplyIncrementalChangeUseCaseImplTest {
     void las_colecciones_sin_cambios_se_guardan_vacias_sin_romper() {
         when(repository.getCatalogVersion()).thenReturn(version(1));
         when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        when(catedra.fetchVersionWindow()).thenReturn(ventana(1, 60));
         when(catedra.fetchChanges(2L)).thenReturn(cambios(2, List.of(), List.of(201L), List.of()));
         when(catedra.fetchProfessional(Set.of(201L))).thenReturn(List.of(profesional(201)));
 
@@ -168,6 +177,7 @@ class ApplyIncrementalChangeUseCaseImplTest {
     void guarda_las_tres_colecciones_cuando_una_version_las_modifica() {
         when(repository.getCatalogVersion()).thenReturn(version(1));
         when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        when(catedra.fetchVersionWindow()).thenReturn(ventana(1, 60));
         when(catedra.fetchChanges(2L)).thenReturn(cambios(2, List.of(101L), List.of(201L), List.of(301L)));
         List<ProfessionalCategory> categorias = List.of(categoria(101));
         List<Professional> profesionales = List.of(profesional(201));
@@ -187,6 +197,7 @@ class ApplyIncrementalChangeUseCaseImplTest {
     void la_version_y_el_evento_se_registran_despues_de_guardar_los_datos() {
         when(repository.getCatalogVersion()).thenReturn(version(1));
         when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        when(catedra.fetchVersionWindow()).thenReturn(ventana(1, 60));
         when(catedra.fetchChanges(2L)).thenReturn(cambios(2, List.of(101L), List.of(201L), List.of(301L)));
         when(catedra.fetchCategories(Set.of(101L))).thenReturn(List.of(categoria(101)));
         when(catedra.fetchProfessional(Set.of(201L))).thenReturn(List.of(profesional(201)));
@@ -215,6 +226,7 @@ class ApplyIncrementalChangeUseCaseImplTest {
     void si_el_evento_salta_versiones_lee_los_cambios_de_todas_y_junta_los_ids_sin_repetir() {
         when(repository.getCatalogVersion()).thenReturn(version(1));
         when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        when(catedra.fetchVersionWindow()).thenReturn(ventana(1, 60));
         when(catedra.fetchChanges(2L)).thenReturn(cambios(2, List.of(), List.of(201L), List.of()));
         when(catedra.fetchChanges(3L)).thenReturn(cambios(3, List.of(101L), List.of(201L, 202L), List.of()));
         when(catedra.fetchChanges(4L)).thenReturn(cambios(4, List.of(), List.of(201L), List.of(301L)));
@@ -238,6 +250,7 @@ class ApplyIncrementalChangeUseCaseImplTest {
     void si_redis_no_responde_al_leer_los_cambios_no_se_guarda_nada_y_la_excepcion_se_propaga() {
         when(repository.getCatalogVersion()).thenReturn(version(1));
         when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        when(catedra.fetchVersionWindow()).thenReturn(ventana(1, 60));
         CatedraUnavailableException error = new CatedraUnavailableException("Redis de la catedra no disponible", new RuntimeException());
         when(catedra.fetchChanges(2L)).thenThrow(error);
 
@@ -252,6 +265,7 @@ class ApplyIncrementalChangeUseCaseImplTest {
     void si_falta_una_version_intermedia_no_se_avanza_la_version_ni_se_registra_el_evento() {
         when(repository.getCatalogVersion()).thenReturn(version(1));
         when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        when(catedra.fetchVersionWindow()).thenReturn(ventana(1, 60));
         when(catedra.fetchChanges(2L)).thenReturn(cambios(2, List.of(), List.of(201L), List.of()));
         InvalidCatalogDataException error = new InvalidCatalogDataException("changes:3 ausente");
         when(catedra.fetchChanges(3L)).thenThrow(error);
@@ -267,6 +281,7 @@ class ApplyIncrementalChangeUseCaseImplTest {
     void si_falla_al_guardar_no_se_avanza_la_version_ni_se_registra_el_evento() {
         when(repository.getCatalogVersion()).thenReturn(version(1));
         when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        when(catedra.fetchVersionWindow()).thenReturn(ventana(1, 60));
         when(catedra.fetchChanges(2L)).thenReturn(cambios(2, List.of(), List.of(201L), List.of()));
         List<Professional> profesionales = List.of(profesional(201));
         when(catedra.fetchProfessional(Set.of(201L))).thenReturn(profesionales);
@@ -277,6 +292,65 @@ class ApplyIncrementalChangeUseCaseImplTest {
 
         verify(repository, never()).saveCatalogVersion(any());
         verify(processedEvents, never()).markProcessed(any(), org.mockito.ArgumentMatchers.anyLong());
+    }
+
+    // ---------- version local fuera de la ventana (ADR-0029) ----------
+
+    @Test
+    void si_la_version_local_es_menor_que_la_mas_antigua_disponible_exige_el_snapshot_completo() {
+        when(repository.getCatalogVersion()).thenReturn(version(3));
+        when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        when(catedra.fetchVersionWindow()).thenReturn(ventana(4, 7));
+
+        assertThatThrownBy(() -> useCase.applyIncrementalChange(evento(EVENT_ID, 7)))
+                .isInstanceOf(FullSyncRequiredException.class)
+                .hasMessageContaining("3")
+                .hasMessageContaining("4");
+
+        verify(catedra, never()).fetchChanges(anyLong());
+        verify(repository, never()).saveProfessionals(any());
+        verify(repository, never()).saveCatalogVersion(any());
+        verify(processedEvents, never()).markProcessed(any(), anyLong());
+    }
+
+    @Test
+    void con_la_version_local_igual_a_la_mas_antigua_disponible_sigue_siendo_incremental() {
+        when(repository.getCatalogVersion()).thenReturn(version(4));
+        when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        when(catedra.fetchVersionWindow()).thenReturn(ventana(4, 5));
+        when(catedra.fetchChanges(5L)).thenReturn(cambios(5, List.of(), List.of(201L), List.of()));
+        when(catedra.fetchProfessional(Set.of(201L))).thenReturn(List.of(profesional(201)));
+
+        CatalogVersion resultado = useCase.applyIncrementalChange(evento(EVENT_ID, 5));
+
+        assertThat(resultado.getSnapshotVersion()).isEqualTo(5);
+        verify(processedEvents).markProcessed(EVENT_ID, 5);
+    }
+
+    @Test
+    void con_la_base_sin_sincronizar_exige_el_snapshot_completo_aunque_la_ventana_empiece_en_cero() {
+        when(repository.getCatalogVersion()).thenReturn(version(0));
+        when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        when(catedra.fetchVersionWindow()).thenReturn(ventana(0, 7));
+
+        assertThatThrownBy(() -> useCase.applyIncrementalChange(evento(EVENT_ID, 7)))
+                .isInstanceOf(FullSyncRequiredException.class);
+
+        verify(catedra, never()).fetchChanges(anyLong());
+        verify(repository, never()).saveCatalogVersion(any());
+    }
+
+    @Test
+    void si_no_se_puede_leer_la_ventana_no_se_guarda_nada_y_la_excepcion_se_propaga() {
+        when(repository.getCatalogVersion()).thenReturn(version(1));
+        when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        CatedraUnavailableException error = new CatedraUnavailableException("Redis de la catedra no disponible", new RuntimeException());
+        when(catedra.fetchVersionWindow()).thenThrow(error);
+
+        assertThatThrownBy(() -> useCase.applyIncrementalChange(evento(EVENT_ID, 2))).isSameAs(error);
+
+        verify(catedra, never()).fetchChanges(anyLong());
+        verify(repository, never()).saveCatalogVersion(any());
     }
 
     // ---------- transaccion ----------

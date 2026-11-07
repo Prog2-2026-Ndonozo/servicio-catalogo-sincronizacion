@@ -1,8 +1,10 @@
 package com.ndonozo.serviciocatalogosincronizacion.catalog.application.usecases;
 
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.exception.FullSyncRequiredException;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogChanges;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogUpdate;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogVersion;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.VersionWindow;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.in.ApplyFullSnapshotUseCase;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.in.ApplyIncrementalChangeUseCase;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatalogRepositoryPort;
@@ -37,6 +39,13 @@ public class ApplyIncrementalChangeUseCaseImpl implements ApplyIncrementalChange
         if (processedEvents.isProcessed(update.getEventId())){
             return local;
 
+        }
+        VersionWindow window = catedra.fetchVersionWindow();
+        if (local.getSnapshotVersion() == 0
+                || local.getSnapshotVersion() < window.getOldestAvailableVersion()) {
+            throw new FullSyncRequiredException("Version local " + local.getSnapshotVersion()
+                    + " fuera de la ventana de la catedra (oldestAvailableVersion="
+                    + window.getOldestAvailableVersion() + ")");
         }
         // 3.  juntar los IDs afectados desde la version siguiente a la local hasta dla del evento
         Set<Long> categoryIds = new LinkedHashSet<>();
