@@ -53,7 +53,8 @@ public class ApplyIncrementalChangeUseCaseImpl implements ApplyIncrementalChange
         Set<Long> scheduleIds = new LinkedHashSet<>();
         for (long v = local.getSnapshotVersion() + 1 ; v <= update.getNewVersion();
              v++){
-            CatalogChanges changes = catedra.fetchChanges(v);
+            final long version = v ;
+            CatalogChanges changes = catedra.fetchChanges(v).orElseThrow(() -> new FullSyncRequiredException("Falta changes:" + version + " en Redis"));
             categoryIds.addAll(changes.getCategoryIds());
             professionalIds.addAll(changes.getProfessionalIds());
             scheduleIds.addAll(changes.getWeeklySchedulesIds());

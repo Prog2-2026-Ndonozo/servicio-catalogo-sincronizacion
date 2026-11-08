@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.time.DayOfWeek.MONDAY;
@@ -75,10 +76,10 @@ class ApplyIncrementalChangeUseCaseImplTest {
         return VersionWindow.builder().oldestAvailableVersion(oldest).currentVersion(current).build();
     }
 
-    private static CatalogChanges cambios(long version, List<Long> categorias, List<Long> profesionales,
+    private static Optional<CatalogChanges> cambios(long version, List<Long> categorias, List<Long> profesionales,
                                           List<Long> horarios) {
-        return CatalogChanges.builder().version(version)
-                .categoryIds(categorias).professionalIds(profesionales).weeklySchedulesIds(horarios).build();
+        return Optional.of(CatalogChanges.builder().version(version)
+                .categoryIds(categorias).professionalIds(profesionales).weeklySchedulesIds(horarios).build());
     }
 
     private static Professional profesional(long id) {
@@ -262,19 +263,34 @@ class ApplyIncrementalChangeUseCaseImplTest {
     }
 
     @Test
-    void si_falta_una_version_intermedia_no_se_avanza_la_version_ni_se_registra_el_evento() {
+    void si_falta_una_version_intermedia_se_exige_el_snapshot_sin_guardar_version_ni_evento() {
         when(repository.getCatalogVersion()).thenReturn(version(1));
         when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
         when(catedra.fetchVersionWindow()).thenReturn(ventana(1, 60));
         when(catedra.fetchChanges(2L)).thenReturn(cambios(2, List.of(), List.of(201L), List.of()));
-        InvalidCatalogDataException error = new InvalidCatalogDataException("changes:3 ausente");
-        when(catedra.fetchChanges(3L)).thenThrow(error);
+        when(catedra.fetchChanges(3L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> useCase.applyIncrementalChange(evento(EVENT_ID, 3))).isSameAs(error);
+        assertThatThrownBy(() -> useCase.applyIncrementalChange(evento(EVENT_ID, 3)))
+                .isInstanceOf(FullSyncRequiredException.class)
+                .hasMessageContaining("3");
 
         verify(repository, never()).saveProfessionals(any());
         verify(repository, never()).saveCatalogVersion(any());
-        verify(processedEvents, never()).markProcessed(any(), org.mockito.ArgumentMatchers.anyLong());
+        verify(processedEvents, never()).markProcessed(any(), anyLong());
+    }
+
+    @Test
+    void unos_cambios_ilegibles_siguen_siendo_un_dato_invalido_y_no_piden_snapshot() {
+        when(repository.getCatalogVersion()).thenReturn(version(1));
+        when(processedEvents.isProcessed(EVENT_ID)).thenReturn(false);
+        when(catedra.fetchVersionWindow()).thenReturn(ventana(1, 60));
+        InvalidCatalogDataException error = new InvalidCatalogDataException("changes:2 ilegible");
+        when(catedra.fetchChanges(2L)).thenThrow(error);
+
+        assertThatThrownBy(() -> useCase.applyIncrementalChange(evento(EVENT_ID, 2))).isSameAs(error);
+
+        verify(repository, never()).saveCatalogVersion(any());
+        verify(processedEvents, never()).markProcessed(any(), anyLong());
     }
 
     @Test
