@@ -1,6 +1,7 @@
 package com.ndonozo.serviciocatalogosincronizacion.catalog.application.service;
 
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.exception.CatedraUnavailableException;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.exception.FullSyncRequiredException;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.exception.InvalidCatalogDataException;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogUpdate;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogVersion;
@@ -64,6 +65,43 @@ class CatalogSyncServiceTest {
         when(applyIncrementalChange.applyIncrementalChange(evento)).thenThrow(error);
 
         assertThatThrownBy(() -> service.applyCatalogUpdate(evento)).isSameAs(error);
+    }
+
+    @Test
+    void si_el_incremental_exige_el_snapshot_completo_lo_pide_y_devuelve_su_version() {
+        CatalogUpdate evento = update(7);
+        CatalogVersion delSnapshot = version(7);
+        when(applyIncrementalChange.applyIncrementalChange(evento))
+                .thenThrow(new FullSyncRequiredException("fuera de la ventana"));
+        when(applyFullSnapshot.applyFullSnapshot()).thenReturn(delSnapshot);
+
+        CatalogVersion resultado = service.applyCatalogUpdate(evento);
+
+        assertThat(resultado).isSameAs(delSnapshot);
+        verify(applyFullSnapshot).applyFullSnapshot();
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void si_ademas_falla_el_snapshot_de_respaldo_la_excepcion_se_propaga() {
+        CatalogUpdate evento = update(7);
+        CatedraUnavailableException error = new CatedraUnavailableException("catedra caida", 503);
+        when(applyIncrementalChange.applyIncrementalChange(evento))
+                .thenThrow(new FullSyncRequiredException("fuera de la ventana"));
+        when(applyFullSnapshot.applyFullSnapshot()).thenThrow(error);
+
+        assertThatThrownBy(() -> service.applyCatalogUpdate(evento)).isSameAs(error);
+    }
+
+    @Test
+    void si_el_incremental_falla_por_otra_causa_no_se_pide_el_snapshot() {
+        CatalogUpdate evento = update(7);
+        CatedraUnavailableException error = new CatedraUnavailableException("redis caido", 503);
+        when(applyIncrementalChange.applyIncrementalChange(evento)).thenThrow(error);
+
+        assertThatThrownBy(() -> service.applyCatalogUpdate(evento)).isSameAs(error);
+
+        verifyNoInteractions(applyFullSnapshot);
     }
 
     @Test

@@ -44,8 +44,8 @@ credenciales se definen en un solo lugar. Si una variable también existe en el 
 
 ### Base de datos local
 
-Variables: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME` y `DB_PASSWORD` (ver `.env.example`). Las de Redis y Kafka
-se agregan en los issues que las usan. Ningún valor real se sube al repositorio.
+Variables: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME` y `DB_PASSWORD` (ver `.env.example`). Ningún valor real se sube
+al repositorio.
 
 - Los datos viven en el volumen `postgres_data` y sobreviven a `docker compose down` y `up`.
 - PostgreSQL toma el usuario y la contraseña **solo al crear el volumen por primera vez**. Cambiar el `.env`
@@ -81,9 +81,20 @@ aplicación arranca igual y reintenta la conexión. Mientras el caso de uso incr
 
 ### Redis
 
-Variables: `CATEDRA_REDIS` (`host:puerto`), `CATEDRA_REDIS_USERNAME` y `CATEDRA_REDIS_PASSWORD`. El usuario y la
-contraseña son secretos: solo en el `.env`, nunca en el repositorio ni en el log. La lectura de Redis se agrega en
-el issue correspondiente.
+Variables: `CATEDRA_REDIS_HOST`, `CATEDRA_REDIS_PORT`, `CATEDRA_REDIS_USERNAME` y `CATEDRA_REDIS_PASSWORD`. El usuario y la
+contraseña son secretos: solo en el `.env`, nunca en el repositorio ni en el log.
+
+La conexión se configura con `host` y `port` por separado, **no** con `spring.data.redis.url`: cuando existe `url`,
+Spring Boot ignora `username` y `password` y toma las credenciales de la propia URL, así que el servicio se
+conectaría sin autenticarse y Redis respondería `NOAUTH`.
+
+`CatedraRedisAdapter` lee de solo lectura el estado que la cátedra publica en `catedra:sync:*`: la ventana de
+versiones, los IDs afectados por una versión y el estado vigente de cada entidad (ADR-0027). El timeout de comando
+es de 5 s (`spring.data.redis.timeout`). Si Redis no responde, el servicio lo trata como "cátedra no disponible"; si
+un dato no es coherente con el contrato (clave ausente, JSON ilegible), lo rechaza sin modificar el catálogo local.
+
+La conexión es perezosa: la aplicación arranca aunque Redis esté caído, y un error de configuración (por ejemplo
+una contraseña incorrecta) recién aparece en la primera lectura, cuando llega un evento.
 
 ### Migraciones
 

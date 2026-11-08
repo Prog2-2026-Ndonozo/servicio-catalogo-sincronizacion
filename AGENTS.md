@@ -43,6 +43,10 @@ Comandos: `./mvnw test` · `./mvnw spring-boot:run` · `docker compose up -d` .
 Hace: copia local del catálogo, versión aplicada, sync completa e incremental, detección de discontinuidad,
 búsqueda local, estado/errores de sync. **No** hace disponibilidad, holds ni reservas (es de `servicio-turnos-reservas`).
 
+## Entorno de pruebas
+Desde 2026-11-04 la cátedra cambia `enabled` de un profesional de forma automática y publica `CatalogUpdated`
+en Kafka: sirve para probar la sync incremental. Detalle y cuidados: `docs/entorno-catedra/cambios-automaticos.md`.
+
 ## Arquitectura (resumen; detalle en `docs/arquitecturaHexagonalServicioCatalogo.md`)
 `catalog/{domain,application,infrastructure}` + `config/`. `domain/` sin Spring/JPA/Jakarta/Jackson.
 `application/` no importa `infrastructure/`. Drivers externos entran por la fachada `@Service`, no por el puerto.
