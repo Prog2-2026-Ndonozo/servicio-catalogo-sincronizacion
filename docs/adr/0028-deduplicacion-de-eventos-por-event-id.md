@@ -1,7 +1,7 @@
 # ADR-0028: Deduplicación de eventos `CatalogUpdated` por `eventId` en PostgreSQL
 
 Fecha: 2026-11-06
-Estado: propuesta
+Estado: aceptada
 
 ## Contexto
 Kafka entrega los eventos **al menos una vez**: el mismo `CatalogUpdated` puede llegar más de una vez, y con

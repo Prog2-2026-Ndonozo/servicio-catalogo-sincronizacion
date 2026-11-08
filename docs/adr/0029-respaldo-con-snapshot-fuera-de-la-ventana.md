@@ -1,7 +1,7 @@
 # ADR-0029: Snapshot completo de respaldo cuando la versión local queda fuera de la ventana
 
 Fecha: 2026-11-06
-Estado: propuesta
+Estado: aceptada
 
 ## Contexto
 La sincronización incremental lee `catedra:sync:changes:{v}` desde la versión siguiente a la local hasta la del
