@@ -58,12 +58,14 @@ Cubre evidencia mínima: *"una inicialización desde snapshot"* (E §11).
 Cubre evidencia mínima: *"una actualización incremental del catálogo"* + *"procesamiento idempotente de un mensaje duplicado"*.
 
 ### #6 feat: sincronización incremental de catálogo vía Kafka + Redis `[feature]`
-- [ ] Adaptador Kafka de entrada: listener de `CatalogUpdated` en `catedra.catalog.{groupId}`
-- [ ] Puerto `CatedraCatalogReadPort` + adaptador Redis (metadata, Hashes, `changes:{version}`)
-- [ ] Caso de uso `ApplyIncrementalChangeUseCase`: aplica en orden, avanza versión solo tras éxito total (E §6.2)
-- [ ] Deduplicación por `eventId` (evento repetido no reaplica efectos)
-- [ ] Manejo de versión fuera de orden (no aplicar fuera de secuencia)
-- [ ] Test: mismo evento procesado dos veces produce el mismo estado final que procesarlo una vez
+> Desglosado en los issues de GitHub #12 a #16 (la numeración de GitHub no coincide con la de este backlog).
+
+- [x] Adaptador Kafka de entrada: listener de `CatalogUpdated` en `catedra.catalog.{groupId}` — GitHub #12 (ADR-0026, ADR-0030)
+- [x] Puerto `CatedraCatalogReadPort` + adaptador Redis (metadata, Hashes, `changes:{version}`) — GitHub #13 (ADR-0027)
+- [x] Caso de uso `ApplyIncrementalChangeUseCase`: aplica en orden, avanza versión solo tras éxito total (E §6.2) — GitHub #14
+- [x] Deduplicación por `eventId` (evento repetido no reaplica efectos) — GitHub #15 (ADR-0028)
+- [x] Manejo de versión fuera de orden (no aplicar fuera de secuencia) — GitHub #16 (recorre `local+1..newVersion`; ADR-0029)
+- [x] Test: mismo evento procesado dos veces produce el mismo estado final que procesarlo una vez
 
 ---
 
