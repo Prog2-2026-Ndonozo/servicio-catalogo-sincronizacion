@@ -11,7 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name= "sync_status")
+@Table(name= "sync_state")
 @Getter
 @Setter
 @NoArgsConstructor
