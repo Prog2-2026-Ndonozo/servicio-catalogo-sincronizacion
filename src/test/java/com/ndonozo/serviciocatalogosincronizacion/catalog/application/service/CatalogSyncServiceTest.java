@@ -7,7 +7,7 @@ import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogUp
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogVersion;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.in.ApplyFullSnapshotUseCase;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.in.ApplyIncrementalChangeUseCase;
-import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatalogRepositoryPort;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatalogVersionPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,7 +33,7 @@ class CatalogSyncServiceTest {
     private ApplyIncrementalChangeUseCase applyIncrementalChange;
 
     @Mock
-    private CatalogRepositoryPort repository;
+    private CatalogVersionPort catalogVersion;
 
     @InjectMocks
     private CatalogSyncService service;
@@ -79,7 +79,7 @@ class CatalogSyncServiceTest {
 
         assertThat(resultado).isSameAs(delSnapshot);
         verify(applyFullSnapshot).applyFullSnapshot();
-        verifyNoInteractions(repository);
+        verifyNoInteractions(catalogVersion);
     }
 
     @Test
@@ -111,12 +111,12 @@ class CatalogSyncServiceTest {
 
         service.applyCatalogUpdate(evento);
 
-        verifyNoInteractions(applyFullSnapshot, repository);
+        verifyNoInteractions(applyFullSnapshot, catalogVersion);
     }
 
     @Test
     void sincronizar_si_esta_vacio_no_usa_el_caso_de_uso_incremental() {
-        when(repository.getCatalogVersion()).thenReturn(version(0));
+        when(catalogVersion.getCatalogVersion()).thenReturn(version(0));
 
         service.synchronizeIfEmpty();
 
@@ -125,7 +125,7 @@ class CatalogSyncServiceTest {
 
     @Test
     void con_version_local_cero_sincroniza_y_devuelve_true() {
-        when(repository.getCatalogVersion()).thenReturn(version(0));
+        when(catalogVersion.getCatalogVersion()).thenReturn(version(0));
 
         boolean sincronizo = service.synchronizeIfEmpty();
 
@@ -136,7 +136,7 @@ class CatalogSyncServiceTest {
     @ParameterizedTest
     @ValueSource(longs = {1, 7, 1_000})
     void con_version_local_mayor_a_cero_no_sincroniza_y_devuelve_false(long local) {
-        when(repository.getCatalogVersion()).thenReturn(version(local));
+        when(catalogVersion.getCatalogVersion()).thenReturn(version(local));
 
         boolean sincronizo = service.synchronizeIfEmpty();
 
@@ -146,7 +146,7 @@ class CatalogSyncServiceTest {
 
     @Test
     void si_el_caso_de_uso_falla_la_excepcion_se_propaga() {
-        when(repository.getCatalogVersion()).thenReturn(version(0));
+        when(catalogVersion.getCatalogVersion()).thenReturn(version(0));
         CatedraUnavailableException error = new CatedraUnavailableException("cátedra caída", 503);
         when(applyFullSnapshot.applyFullSnapshot()).thenThrow(error);
 
@@ -155,7 +155,7 @@ class CatalogSyncServiceTest {
 
     @Test
     void si_no_se_puede_leer_la_version_local_no_se_pide_el_snapshot() {
-        when(repository.getCatalogVersion()).thenThrow(new IllegalStateException("base caída"));
+        when(catalogVersion.getCatalogVersion()).thenThrow(new IllegalStateException("base caída"));
 
         assertThatThrownBy(() -> service.synchronizeIfEmpty())
                 .isInstanceOf(IllegalStateException.class);

@@ -5,7 +5,7 @@ import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogUp
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogVersion;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.in.ApplyFullSnapshotUseCase;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.in.ApplyIncrementalChangeUseCase;
-import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatalogRepositoryPort;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatalogVersionPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,10 +16,10 @@ import org.springframework.stereotype.Service;
 public class CatalogSyncService {
     private final ApplyFullSnapshotUseCase applyFullSnapshot;
     private final ApplyIncrementalChangeUseCase applyIncrementalChange;
-    private final CatalogRepositoryPort repository;
+    private final CatalogVersionPort catalogVersion;
 
     public boolean synchronizeIfEmpty(){
-        if (repository.getCatalogVersion().getSnapshotVersion() > 0){
+        if (catalogVersion.getCatalogVersion().getSnapshotVersion() > 0){
             return false;
         }
         applyFullSnapshot.applyFullSnapshot();
