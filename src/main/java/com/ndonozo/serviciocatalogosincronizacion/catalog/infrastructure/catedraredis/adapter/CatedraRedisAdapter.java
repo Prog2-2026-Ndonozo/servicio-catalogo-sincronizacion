@@ -43,18 +43,18 @@ public class CatedraRedisAdapter implements CatedraCatalogReadPort {
     }
 
     @Override
-    public CatalogChanges fetchChanges(long version) {
+    public Optional<CatalogChanges> fetchChanges(long version) {
         String key = CHANGES_KEY_PREFIX + version;
         String json = readRedis(() -> redis.opsForValue().get(key));
         if (json == null) {
-            throw new InvalidCatalogDataException("Redis has no changes for version " + version);
+            return Optional.empty();
         }
         CatalogChanges changes = mapper.toDomain(parse(json, CatalogChangesRedisDto.class, key));
         if (changes.getVersion() != version) {
             throw new InvalidCatalogDataException(
                     "Redis changes for version " + version + " declare version " + changes.getVersion());
         }
-        return changes;
+        return Optional.of(changes);
     }
 
     @Override

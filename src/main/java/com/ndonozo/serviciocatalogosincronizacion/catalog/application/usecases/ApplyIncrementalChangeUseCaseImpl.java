@@ -8,6 +8,7 @@ import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.VersionWi
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.in.ApplyFullSnapshotUseCase;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.in.ApplyIncrementalChangeUseCase;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatalogRepositoryPort;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatalogVersionPort;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatedraCatalogReadPort;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.ProcessedEventPort;
 import lombok.RequiredArgsConstructor;
@@ -23,13 +24,14 @@ public class ApplyIncrementalChangeUseCaseImpl implements ApplyIncrementalChange
 
     private final CatedraCatalogReadPort catedra;
     private final CatalogRepositoryPort repository;
+    private final CatalogVersionPort catalogVersion;
     private final ProcessedEventPort processedEvents;
 
 
     @Transactional
     @Override
     public CatalogVersion applyIncrementalChange(CatalogUpdate update){
-        CatalogVersion local = repository.getCatalogVersion();
+        CatalogVersion local = catalogVersion.getCatalogVersion();
 
         // 1. Ya aplicado: la version local alcanza o supera a la del evento. Evento viejo termina sin llamar a redis
         if (update.getNewVersion() <= local.getSnapshotVersion()){
@@ -53,7 +55,8 @@ public class ApplyIncrementalChangeUseCaseImpl implements ApplyIncrementalChange
         Set<Long> scheduleIds = new LinkedHashSet<>();
         for (long v = local.getSnapshotVersion() + 1 ; v <= update.getNewVersion();
              v++){
-            CatalogChanges changes = catedra.fetchChanges(v);
+            final long version = v ;
+            CatalogChanges changes = catedra.fetchChanges(v).orElseThrow(() -> new FullSyncRequiredException("Falta changes:" + version + " en Redis"));
             categoryIds.addAll(changes.getCategoryIds());
             professionalIds.addAll(changes.getProfessionalIds());
             scheduleIds.addAll(changes.getWeeklySchedulesIds());
@@ -67,7 +70,7 @@ public class ApplyIncrementalChangeUseCaseImpl implements ApplyIncrementalChange
 
         //5. La version y el eventId se registran al final, en la misma transaccion
         CatalogVersion applied = CatalogVersion.builder().snapshotVersion(update.getNewVersion()).build();
-        repository.saveCatalogVersion(applied);
+        catalogVersion.saveCatalogVersion(applied);
         processedEvents.markProcessed(update.getEventId(), update.getNewVersion());
         return applied;
 

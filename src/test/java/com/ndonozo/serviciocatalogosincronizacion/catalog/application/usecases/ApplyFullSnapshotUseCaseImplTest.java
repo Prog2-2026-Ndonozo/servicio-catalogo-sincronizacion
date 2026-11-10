@@ -8,6 +8,7 @@ import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.Professio
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.ProfessionalCategory;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.WeeklySchedule;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatalogRepositoryPort;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatalogVersionPort;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatedraSnapshotPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,9 @@ class ApplyFullSnapshotUseCaseImplTest {
     @Mock
     private CatalogRepositoryPort repository;
 
+    @Mock
+    private CatalogVersionPort catalogVersion;
+
     private ApplyFullSnapshotUseCaseImpl useCase;
 
     private final List<ProfessionalCategory> categorias = List.of(ProfessionalCategory.builder()
@@ -65,7 +69,7 @@ class ApplyFullSnapshotUseCaseImplTest {
 
     @BeforeEach
     void preparaCasoDeUso() {
-        useCase = new ApplyFullSnapshotUseCaseImpl(snapshotPort, repository);
+        useCase = new ApplyFullSnapshotUseCaseImpl(snapshotPort, repository, catalogVersion);
         snapshot = CatalogSnapshot.builder()
                 .snapshotVersion(7L)
                 .categories(categorias)
@@ -81,12 +85,12 @@ class ApplyFullSnapshotUseCaseImplTest {
 
         CatalogVersion aplicada = useCase.applyFullSnapshot();
 
-        InOrder orden = inOrder(repository);
+        InOrder orden = inOrder(repository, catalogVersion);
         orden.verify(repository).saveProfessionalCategories(categorias);
         orden.verify(repository).saveProfessionals(profesionales);
         orden.verify(repository).saveWeeklySchedule(horarios);
         ArgumentCaptor<CatalogVersion> guardada = ArgumentCaptor.forClass(CatalogVersion.class);
-        orden.verify(repository).saveCatalogVersion(guardada.capture());
+        orden.verify(catalogVersion).saveCatalogVersion(guardada.capture());
 
         assertThat(guardada.getValue().getSnapshotVersion()).isEqualTo(7L);
         assertThat(aplicada).isSameAs(guardada.getValue());
@@ -106,7 +110,7 @@ class ApplyFullSnapshotUseCaseImplTest {
         CatalogVersion aplicada = useCase.applyFullSnapshot();
 
         assertThat(aplicada.getSnapshotVersion()).isEqualTo(3L);
-        verify(repository).saveCatalogVersion(aplicada);
+        verify(catalogVersion).saveCatalogVersion(aplicada);
     }
 
     @Test
@@ -119,7 +123,7 @@ class ApplyFullSnapshotUseCaseImplTest {
 
         verify(repository, never()).saveProfessionals(any());
         verify(repository, never()).saveWeeklySchedule(any());
-        verify(repository, never()).saveCatalogVersion(any());
+        verify(catalogVersion, never()).saveCatalogVersion(any());
     }
 
     @Test
@@ -130,7 +134,7 @@ class ApplyFullSnapshotUseCaseImplTest {
         assertThatThrownBy(() -> useCase.applyFullSnapshot()).isInstanceOf(IllegalStateException.class);
 
         verify(repository, never()).saveWeeklySchedule(any());
-        verify(repository, never()).saveCatalogVersion(any());
+        verify(catalogVersion, never()).saveCatalogVersion(any());
     }
 
     @Test
@@ -140,7 +144,7 @@ class ApplyFullSnapshotUseCaseImplTest {
 
         assertThatThrownBy(() -> useCase.applyFullSnapshot()).isInstanceOf(IllegalStateException.class);
 
-        verify(repository, never()).saveCatalogVersion(any());
+        verify(catalogVersion, never()).saveCatalogVersion(any());
     }
 
     @Test
@@ -150,7 +154,7 @@ class ApplyFullSnapshotUseCaseImplTest {
 
         assertThatThrownBy(() -> useCase.applyFullSnapshot()).isSameAs(fallo);
 
-        verifyNoInteractions(repository);
+        verifyNoInteractions(repository, catalogVersion);
     }
 
     @Test
@@ -160,7 +164,7 @@ class ApplyFullSnapshotUseCaseImplTest {
 
         assertThatThrownBy(() -> useCase.applyFullSnapshot()).isSameAs(fallo);
 
-        verifyNoInteractions(repository);
+        verifyNoInteractions(repository, catalogVersion);
     }
 
     @Test

@@ -51,6 +51,8 @@ lectura sobre `catedra:sync:*` (I §14.1).
 - **Antecedente (2026-11-06):** con `url` más `username` y `password`, la primera prueba con eventos reales falló con
   `NOAUTH HELLO must be called with the client already authenticated`: los tests unitarios no podían detectarlo
   y la conexión perezosa lo postergó hasta la primera lectura. Cada evento agotó sus reintentos y se descartó.
+- **Actualización (ADR-0031):** una clave `changes:{v}` ausente ya no es un dato incoherente: el puerto devuelve
+  `Optional` y el caso de uso la trata como discontinuidad (snapshot completo).
 - Que falte un ID es una incoherencia con el contrato, no un dato opcional: el caso de uso no debe avanzar la
   versión local si la lectura no está completa (I §14.5).
 - Las listas devueltas no garantizan un orden respecto de los IDs pedidos más allá del de entrada; el caso de uso

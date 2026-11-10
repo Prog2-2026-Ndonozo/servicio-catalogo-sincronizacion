@@ -140,7 +140,7 @@ class CatedraRedisAdapterTest {
         conValue();
         when(valueOps.get("catedra:sync:changes:7")).thenReturn(CAMBIOS_7);
 
-        CatalogChanges cambios = adapter.fetchChanges(7);
+        CatalogChanges cambios = adapter.fetchChanges(7).orElseThrow();
 
         assertThat(cambios.getVersion()).isEqualTo(7L);
         assertThat(cambios.getCategoryIds()).isEmpty();
@@ -149,13 +149,11 @@ class CatedraRedisAdapterTest {
     }
 
     @Test
-    void una_version_sin_clave_en_redis_es_un_dato_invalido() {
+    void una_clave_de_cambios_ausente_devuelve_vacio_porque_es_una_discontinuidad_y_no_un_dato_invalido() {
         conValue();
         when(valueOps.get("catedra:sync:changes:7")).thenReturn(null);
 
-        assertThatThrownBy(() -> adapter.fetchChanges(7))
-                .isInstanceOf(InvalidCatalogDataException.class)
-                .hasMessageContaining("7");
+        assertThat(adapter.fetchChanges(7)).isEmpty();
     }
 
     @Test

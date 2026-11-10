@@ -1,18 +1,14 @@
 package com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.adapter;
 
-import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogVersion;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.Professional;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.ProfessionalCategory;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.WeeklySchedule;
-import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.entity.CatalogVersionEntity;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.entity.ProfessionalCategoryEntity;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.entity.ProfessionalEntity;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.entity.WeeklyScheduleEntity;
-import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.mapper.CatalogVersionMapper;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.mapper.ProfessionalCategoryMapper;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.mapper.ProfessionalMapper;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.mapper.WeeklyScheduleMapper;
-import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.repository.JpaCatalogVersionRepository;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.repository.JpaProfessionalCategoryRepository;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.repository.JpaProfessionalRepository;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.persistence.repository.JpaWeeklyScheduleRepository;
@@ -44,12 +40,10 @@ class JpaCatalogRepositoryAdapterTest {
     @Mock private JpaProfessionalRepository professionalRepository;
     @Mock private JpaProfessionalCategoryRepository categoryRepository;
     @Mock private JpaWeeklyScheduleRepository weeklySchedulesRepository;
-    @Mock private JpaCatalogVersionRepository catalogVersionRepository;
 
     @Captor private ArgumentCaptor<List<ProfessionalCategoryEntity>> categoriesCaptor;
     @Captor private ArgumentCaptor<List<ProfessionalEntity>> professionalsCaptor;
     @Captor private ArgumentCaptor<List<WeeklyScheduleEntity>> schedulesCaptor;
-    @Captor private ArgumentCaptor<CatalogVersionEntity> versionCaptor;
 
     private JpaCatalogRepositoryAdapter adapter;
 
@@ -57,9 +51,9 @@ class JpaCatalogRepositoryAdapterTest {
     void setUp() {
         adapter = new JpaCatalogRepositoryAdapter(
                 professionalRepository, categoryRepository,
-                weeklySchedulesRepository, catalogVersionRepository,
+                weeklySchedulesRepository,
                 new ProfessionalCategoryMapper(), new ProfessionalMapper(),
-                new WeeklyScheduleMapper(), new CatalogVersionMapper());
+                new WeeklyScheduleMapper());
     }
 
     private static ProfessionalCategory categoria() {
@@ -135,37 +129,5 @@ class JpaCatalogRepositoryAdapterTest {
 
         verify(professionalRepository).saveAll(professionalsCaptor.capture());
         assertThat(professionalsCaptor.getValue()).isEmpty();
-    }
-
-    @Test
-    void getCatalogVersion_devuelve_la_version_guardada() {
-        CatalogVersionEntity entity = new CatalogVersionEntity();
-        entity.setId(CatalogVersionEntity.SINGLE_ROW_ID);
-        entity.setSnapshotVersion(7L);
-        when(catalogVersionRepository.findById(CatalogVersionEntity.SINGLE_ROW_ID))
-                .thenReturn(Optional.of(entity));
-
-        CatalogVersion version = adapter.getCatalogVersion();
-
-        assertThat(version.getSnapshotVersion()).isEqualTo(7L);
-    }
-
-    @Test
-    void getCatalogVersion_falla_si_no_existe_la_fila() {
-        when(catalogVersionRepository.findById(CatalogVersionEntity.SINGLE_ROW_ID))
-                .thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> adapter.getCatalogVersion())
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("catalog_version has no row");
-    }
-
-    @Test
-    void saveCatalogVersion_guarda_la_version_en_la_fila_unica() {
-        adapter.saveCatalogVersion(CatalogVersion.builder().snapshotVersion(9).build());
-
-        verify(catalogVersionRepository).save(versionCaptor.capture());
-        assertThat(versionCaptor.getValue().getId()).isEqualTo(CatalogVersionEntity.SINGLE_ROW_ID);
-        assertThat(versionCaptor.getValue().getSnapshotVersion()).isEqualTo(9L);
     }
 }

@@ -1,0 +1,8 @@
+CREATE TABLE sync_state (
+    id SMALLINT PRIMARY KEY CHECK(id = 1),
+    status TEXT NOT NULL CHECK (status IN ('SIN_SINCRONIZAR', 'OK', 'RECONSTRUIDO_POR_DISCONTINUIDAD', 'ERROR')),
+    detail TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+INSERT INTO sync_state (id, status) VALUES (1, 'SIN_SINCRONIZAR');
