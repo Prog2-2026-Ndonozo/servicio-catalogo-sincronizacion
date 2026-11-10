@@ -25,9 +25,12 @@ servicio.
 Para el filtro por nombre:
 1. **Igualdad exacta.** − Un usuario que escribe "ana" no encuentra a "Ana Torres" ni a "Mariana".
 2. **Prefijo.** − No encuentra por apellido ni por una parte intermedia del nombre.
-3. **Contiene el texto, sin distinguir mayúsculas ni tildes, sobre nombre y apellido.** + Cubre la forma en que se
-   busca una persona; − una consulta `LIKE '%texto%'` no puede usar un índice común (aceptable con el volumen de un
-   catálogo de profesionales).
+3. **Contiene el texto, sin distinguir mayúsculas, sobre nombre y apellido.** + Cubre la forma en que se busca una
+   persona; − una consulta `LIKE '%texto%'` no puede usar un índice común (aceptable con el volumen de un catálogo
+   de profesionales).
+4. **Contiene el texto, sin distinguir mayúsculas ni tildes.** + Mejor experiencia con nombres en español; − exige la
+   extensión `unaccent` de PostgreSQL o una columna normalizada. Se descarta por ahora: los datos actuales no
+   llevan tildes y sería ingeniería prematura.
 
 Para el login: **en este servicio** o **en el servicio de turnos**. El enunciado no los distingue; ver Decisión.
 
@@ -41,9 +44,14 @@ Para el login: **en este servicio** o **en el servicio de turnos**. El enunciado
    usuario final lo emite ese servicio; este servicio debe poder **validar su firma, vigencia y permisos** (E §9)
    para proteger sus endpoints.
 3. **Filtro por nombre (opción 3):** un único texto que se busca dentro del nombre y del apellido del profesional,
-   ignorando mayúsculas y minúsculas y también las tildes (`jose` encuentra a "José"). La coincidencia es por
-   contenido, no por igualdad ni prefijo, y se aplica sobre el nombre y el apellido juntos, de modo que `ana torres`
-   y `torres` también encuentran a "Ana Torres". El texto se recorta de espacios antes de buscar.
+   ignorando mayúsculas y minúsculas. Las tildes **no** se ignoran por ahora (`jose` no encuentra a "José"): los
+   datos actuales no las tienen, y se agrega si hace falta (opción 4). La coincidencia es por contenido, no por
+   igualdad ni prefijo, y se aplica sobre el nombre y el apellido juntos, de modo que `ana torres` y `torres`
+   también encuentran a "Ana Torres". El texto se recorta de espacios antes de buscar.
+4. **Sin paginación por ahora:** la búsqueda devuelve todos los resultados, ordenados por apellido, nombre e id. El
+   contrato no la pide y el catálogo es chico.
+5. **La interfaz también necesita listar las categorías** para ofrecer el filtro por categoría: se agrega un
+   endpoint de lectura de categorías al #9.
 
 ## Pendiente (se decide aparte, con más análisis)
 - **Ruta de KMP hacia la búsqueda:** directo a este servicio o a través del servicio de turnos. Ningún documento lo
@@ -56,8 +64,10 @@ Para el login: **en este servicio** o **en el servicio de turnos**. El enunciado
   profesional (turnos). El segundo se suma al backlog.
 - Como el login está en turnos, la protección de la búsqueda depende de cómo se validen allí los tokens (clave
   compartida o par de claves): se resuelve junto con los dos puntos pendientes.
-- La búsqueda por nombre insensible a tildes se resuelve en la base: la extensión `unaccent` de PostgreSQL o una
-  columna con el nombre normalizado. Se elige al implementar el #9.
+- Si más adelante se necesita ignorar tildes, se resuelve en la base: la extensión `unaccent` de PostgreSQL o una
+  columna con el nombre normalizado. No se verificó que `unaccent` esté disponible en la imagen de PostgreSQL usada.
+- Al escapar el texto del usuario en la consulta (`%` y `_` son comodines de `LIKE`), una búsqueda por `%` no debe
+  devolver todo el catálogo.
 - Turnos no puede conservar la agenda como catálogo vigente (E §3, E §4.2): cada operación consulta a este servicio.
-- Tests: coincidencias por nombre, por apellido, por ambos, sin distinguir mayúsculas ni tildes, con espacios sobrantes,
-  y sin resultados.
+- Tests: coincidencias por nombre, por apellido, por ambos, sin distinguir mayúsculas, con espacios sobrantes, con
+  comodines en el texto y sin resultados.

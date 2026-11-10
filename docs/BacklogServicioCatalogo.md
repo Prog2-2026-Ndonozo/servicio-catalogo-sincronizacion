@@ -93,7 +93,9 @@ No es código — es resolver con un ADR qué significa exactamente "disponibili
 ### #9 feat: búsqueda de profesionales con filtros obligatorios `[feature]`
 - [ ] Caso de uso `SearchProfessionalsUseCase`: categoría, nombre, estado habilitado, disponibilidad (según #8)
 - [ ] Adaptador REST protegido con JWT de usuario final (emitido por turnos, ADR-0035); ruta directa o vía turnos: pendiente
-- [ ] Filtro por nombre: contiene, sin mayúsculas ni tildes, sobre nombre y apellido (ADR-0035)
+- [ ] Filtro por nombre: contiene, sin mayúsculas, sobre nombre y apellido; las tildes no se ignoran por ahora (ADR-0035)
+- [ ] Endpoint de lectura de categorías, para que KMP ofrezca el filtro por categoría (ADR-0035)
+- [ ] Sin paginación por ahora (ADR-0035)
 - [ ] Endpoint de agenda vigente de un profesional para servicio-turnos (E §4.2, E §7, I §17); autenticación entre servicios según #10
 - [ ] Test: filtros combinados y verificación de que nunca se llama a la cátedra por búsqueda
 
