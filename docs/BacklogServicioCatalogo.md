@@ -88,9 +88,13 @@ Cubre evidencia mínima: *"búsquedas resueltas sobre datos locales"* + *"funcio
 ### #8 decision: criterio de "disponibilidad" para el filtro `[decision-needed]`
 No es código — es resolver con un ADR qué significa exactamente "disponibilidad" (¿algún horario habilitado? ¿en un rango de fechas?) antes de que el #9 lo implemente. Bloquea a #9.
 
+**Resuelto:** ADR-0034 (`availableOn`: atiende ese día de la semana; supuesto a confirmar con la cátedra el 17/11).
+
 ### #9 feat: búsqueda de profesionales con filtros obligatorios `[feature]`
 - [ ] Caso de uso `SearchProfessionalsUseCase`: categoría, nombre, estado habilitado, disponibilidad (según #8)
-- [ ] Adaptador REST protegido con JWT — usuario final si KMP consulta directo, técnico inter-servicios si es turnos quien proxea (confirmar decisión pendiente)
+- [ ] Adaptador REST protegido con JWT de usuario final (emitido por turnos, ADR-0035); ruta directa o vía turnos: pendiente
+- [ ] Filtro por nombre: contiene, sin mayúsculas ni tildes, sobre nombre y apellido (ADR-0035)
+- [ ] Endpoint de agenda vigente de un profesional para servicio-turnos (E §4.2, E §7, I §17); autenticación entre servicios según #10
 - [ ] Test: filtros combinados y verificación de que nunca se llama a la cátedra por búsqueda
 
 ---

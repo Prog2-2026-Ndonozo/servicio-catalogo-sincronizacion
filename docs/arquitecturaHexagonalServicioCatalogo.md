@@ -133,14 +133,14 @@ de cada caso de uso y deja un único punto de entrada por responsabilidad.
 
 | Puerto in | Fachada | Adaptador in | Consumidor | JWT esperado |
 |---|---|---|---|---|
-| `SearchProfessionalsUseCase` | `ProfessionalSearchService` | REST `/api/professionals/search` | App KMP | JWT de usuario final |
-| `SearchProfessionalsUseCase` (mismo caso de uso, distinto endpoint o header) | `ProfessionalSearchService` | REST `/api/internal/professionals/search` | servicio-turnos | JWT técnico inter-servicios |
+| `SearchProfessionalsUseCase` | `ProfessionalSearchService` | REST `/api/professionals/search` | App KMP (ruta directa o vía turnos: pendiente) | JWT de usuario final, emitido por turnos (ADR-0035) |
+| Agenda vigente de un profesional (nombre del puerto por definir, #10) | por definir | REST `/api/internal/professionals/{id}/agenda` | servicio-turnos | Autenticación entre servicios: pendiente |
 | `ApplyIncrementalChangeUseCase` | `CatalogSyncService` | `messaging/CatalogUpdatedListener` | Evento `CatalogUpdated` de cátedra | N/A (no es HTTP) |
 | `ApplyFullSnapshotUseCase` | `CatalogSyncService` | disparado desde `CatalogSyncService` ante base vacía o discontinuidad | Interno | N/A |
 | `GetSyncStatusUseCase` | `CatalogSyncService` | REST `/api/sync/status` | Observabilidad / debugging propio | JWT técnico inter-servicios (opcional exponerlo también a un admin en KMP) |
 
-Decisión pendiente: si KMP nunca le pega directo a catálogo, se elimina la fila de KMP y turnos queda
-como único consumidor de la búsqueda (ver `DECISIONES.md`).
+Turnos **no** consume la búsqueda sino la agenda de un profesional concreto (E §4.2, E §7, I §17; ADR-0035).
+Pendientes (ver `DECISIONES.md`): ruta de KMP hacia la búsqueda y autenticación entre servicios.
 
 ## Puertos de salida — a qué le hablan y quién los implementa
 

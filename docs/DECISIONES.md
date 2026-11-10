@@ -34,6 +34,8 @@ Registro de decisiones (E §10 y §12). Cada decisión importante tiene su ADR e
 | Versión intermedia ausente = discontinuidad | `CatedraCatalogReadPort.fetchChanges` devuelve `Optional<CatalogChanges>`; vacío lanza `FullSyncRequiredException` en el caso de uso; JSON ilegible o ID faltante en el Hash siguen siendo `InvalidCatalogDataException` | `adr/0031-version-intermedia-ausente-como-discontinuidad.md` |
 | Estado observable de la sincronización | Tabla `sync_state` de una fila en PostgreSQL (`SIN_SINCRONIZAR`, `OK`, `RECONSTRUIDO_POR_DISCONTINUIDAD`, `ERROR`); la fachada lo escribe en una transacción propia y relanza el error | `adr/0032-estado-observable-de-la-sincronizacion.md` |
 | Un solo módulo hasta la entrega y desvíos conocidos | Se mantiene `catalog` hasta el 17/11; la migración a módulos se evalúa sobre el servicio funcionando; se registran los desvíos respecto de la skill | `adr/0033-un-solo-modulo-hasta-la-entrega-y-desvios-conocidos.md` |
+| Disponibilidad en el filtro de búsqueda | Parámetro `availableOn` (fecha): profesionales con un horario habilitado para el día de la semana de esa fecha; es un pre-filtro, no garantiza turnos libres. Supuesto a confirmar con la cátedra el 17/11 | `adr/0034-disponibilidad-en-el-filtro-de-busqueda.md` |
+| Consumidores de la búsqueda, login y filtro por nombre | KMP consume la búsqueda; turnos consume la agenda por profesional (no la búsqueda); registro y login en turnos; nombre = contiene, sin mayúsculas ni tildes, sobre nombre y apellido | `adr/0035-consumidores-de-la-busqueda-login-y-filtro-por-nombre.md` |
 | Datos inválidos de la cátedra | Se asume que llegan válidos; sin manejo especial. Si llega uno inválido, falla la unidad de trabajo y la versión local no avanza | `adr/0014-validaciones-del-modelo.md` |
 | Versión 0 | No se publica (el profesor lo consideró improbable); `0` es el estado inicial, base vacía | `adr/0014-validaciones-del-modelo.md` |
 
@@ -42,10 +44,8 @@ Registro de decisiones (E §10 y §12). Cada decisión importante tiene su ADR e
 | Decisión | Bloquea | Notas |
 |---|---|---|
 | Idempotencia: deduplicar por `eventId` de Kafka (I §15.1, §18.1) | #6 | Falta decidir dónde se persiste el `eventId` procesado |
-| Qué significa "disponibilidad" en el filtro de búsqueda | #9 (issue #8, ADR) | E §4.1 no lo define |
-| Quién consume la búsqueda: ¿KMP directo + turnos, o solo turnos? | #9 | Si solo turnos, se elimina la fila de KMP de la tabla de puertos de entrada |
-| Dónde viven registro/login del usuario final (E §3.2) | — | E no asigna el servicio; `reunion.md` lo ubica en catálogo. No está en el backlog |
-| Propagación de identidad entre servicios (JWT usuario vs técnico) | #10 | `ADR-0002` aún no escrito (E §9) |
+| Ruta de KMP hacia la búsqueda: directo a catálogo o a través de turnos | #9, #10 | Ningún documento lo define; en análisis (ADR-0035) |
+| Autenticación entre servicios (JWT del usuario propagado o JWT técnico) | #10 | E §9 lo deja a cargo del alumno; con el login en turnos (ADR-0035), el catálogo debe validar tokens emitidos allí |
 | Reintentos y reconstrucción de la sincronización (qué hacer con filas ausentes del snapshot) | #6 | Alcance de la transacción resuelto en ADR-0023; falta la política de reintentos y la limpieza previa |
 | `SyncDiagnosticsPort`: tabla propia o sobre `CatalogRepositoryPort` | #7, #12 | Depende de la máquina de estados de sync |
-| Significado de "nombre" en el filtro de búsqueda; efecto de una categoría deshabilitada sobre sus profesionales | #9 | Huecos de E §4.1 (ADR-0010) |
+| Efecto de una categoría deshabilitada sobre sus profesionales en la búsqueda | #9 | El significado de "nombre" quedó en ADR-0035 y el de "disponibilidad" en ADR-0034 |
