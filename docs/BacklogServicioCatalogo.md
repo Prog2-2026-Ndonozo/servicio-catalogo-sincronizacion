@@ -93,8 +93,9 @@ No es código — es resolver con un ADR qué significa exactamente "disponibili
 ### #9 feat: búsqueda de profesionales con filtros obligatorios `[feature]`
 - [ ] Caso de uso `SearchProfessionalsUseCase`: categoría, nombre, estado habilitado, disponibilidad (según #8)
 - [ ] Adaptador REST protegido con JWT de usuario final (emitido por turnos, ADR-0035); ruta directa o vía turnos: pendiente
-- [ ] Filtro por nombre: contiene, sin mayúsculas ni tildes, sobre nombre y apellido (ADR-0035)
-- [ ] Endpoint de agenda vigente de un profesional para servicio-turnos (E §4.2, E §7, I §17); autenticación entre servicios según #10
+- [ ] Filtro por nombre: contiene, sin mayúsculas, sobre nombre y apellido; las tildes no se ignoran por ahora (ADR-0035)
+- [ ] Endpoint de lectura de categorías, para que KMP ofrezca el filtro por categoría (ADR-0035)
+- [ ] Sin paginación por ahora (ADR-0035)
 - [ ] Test: filtros combinados y verificación de que nunca se llama a la cátedra por búsqueda
 
 ---
@@ -106,6 +107,10 @@ Cada uno es una funcionalidad transversal autocontenida — issue propio, commit
 ### #10 feat: JWT inter-servicios para servicio-turnos `[security]`
 Según la decisión ya tomada en `ADR-0002` (propagación de identidad).
 
+- [ ] Validar el JWT del usuario final, emitido por servicio-turnos (login en turnos, ADR-0035), en los endpoints de búsqueda y categorías
+- [ ] Autenticación entre servicios: JWT del usuario propagado o JWT técnico (decisión pendiente, E §9)
+- [ ] Endpoint de agenda vigente de un profesional para servicio-turnos (E §4.2, E §7, I §17; ADR-0035): profesional, su estado y sus horarios semanales con `enabled`
+
 ### #11 feat: resiliencia ante indisponibilidad de cátedra `[feature]`
 Timeouts + reintentos acotados al llamar REST/Redis/Kafka de cátedra. Las búsquedas siguen funcionando con la última copia local (E §8).
 
@@ -113,7 +118,8 @@ Timeouts + reintentos acotados al llamar REST/Redis/Kafka de cátedra. Las búsq
 Expone el estado guardado en #7 (E §4.1: *"informar el estado y los errores de sincronización"*).
 
 ### #13 feat: CORS y validación de entrada `[security]`
-CORS según clientes permitidos + validación de DTOs en cada endpoint público.
+Validación de DTOs en cada endpoint público (E §9). **CORS no se implementa**: el cliente es una app Android nativa y, según el
+profesor (verbal, a confirmar por escrito), su mención en E §9 es un error del documento. Ver `DECISIONES.md`.
 
 ---
 

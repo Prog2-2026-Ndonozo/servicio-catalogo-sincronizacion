@@ -30,4 +30,10 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule SIN_INYECCION_POR_CAMPO = ArchitectureRules.SIN_INYECCION_POR_CAMPO;
+
+    @ArchTest
+    static final ArchRule SOLO_LA_SINCRONIZACION_USA_LOS_PUERTOS_DE_LA_CATEDRA = ArchitectureRules.SOLO_LA_SINCRONIZACION_USA_LOS_PUERTOS_DE_LA_CATEDRA;
+
+    @ArchTest
+    static final ArchRule WEB_Y_PERSISTENCIA_NO_USAN_LA_CATEDRA = ArchitectureRules.WEB_Y_PERSISTENCIA_NO_USAN_LA_CATEDRA;
 }

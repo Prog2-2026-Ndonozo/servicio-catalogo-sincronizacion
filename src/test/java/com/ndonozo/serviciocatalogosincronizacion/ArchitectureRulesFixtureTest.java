@@ -46,6 +46,18 @@ class ArchitectureRulesFixtureTest {
         assertViolacion(ArchitectureRules.SIN_INYECCION_POR_CAMPO, "SinInyeccionPorCampo");
     }
 
+    @Test
+    void SoloLaSincronizacionUsaLosPuertosDeLaCatedra_detecta_a_una_clase_de_busqueda_que_usa_un_puerto_de_la_catedra() {
+        assertViolacion(ArchitectureRules.SOLO_LA_SINCRONIZACION_USA_LOS_PUERTOS_DE_LA_CATEDRA,
+                "SoloLaSincronizacionUsaLosPuertosDeLaCatedra");
+    }
+
+    @Test
+    void WebYPersistenciaNoUsanLaCatedra_detecta_a_la_persistencia_usando_el_cliente_de_la_catedra() {
+        assertViolacion(ArchitectureRules.WEB_Y_PERSISTENCIA_NO_USAN_LA_CATEDRA,
+                "WebYPersistenciaNoUsanLaCatedra");
+    }
+
     private static void assertViolacion(ArchRule regla, String paquete) {
         JavaClasses clases = new ClassFileImporter().importPackages(FIXTURES + paquete);
         assertThat(regla.evaluate(clases).hasViolation())

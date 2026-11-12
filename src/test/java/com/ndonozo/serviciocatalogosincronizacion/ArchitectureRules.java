@@ -5,6 +5,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
@@ -21,6 +22,8 @@ final class ArchitectureRules {
     static final String FACHADAS = "..application.service..";
     static final String PERSISTENCIA = "..infrastructure.persistence..";
     static final String MODULO = "..catalog..";
+    static final String CATEDRA_REST = "..infrastructure.catedrarest..";
+    static final String CATEDRA_REDIS = "..infrastructure.catedraredis..";
 
     static final ArchRule MODULO_SOLO_TIENE_TRES_CAPAS = noClasses()
             .that().resideInAPackage(MODULO)
@@ -70,6 +73,26 @@ final class ArchitectureRules {
 
     static final ArchRule SIN_INYECCION_POR_CAMPO = noFields()
             .should().beAnnotatedWith(Autowired.class)
+            .allowEmptyShould(true);
+
+    /**
+     * E §6.2: las busquedas se resuelven con la copia local y nunca consultan a la catedra. Solo los casos de uso de
+     * sincronizacion pueden usar los puertos de lectura de la catedra (los adaptadores que los implementan quedan
+     * afuera de la regla).
+     */
+    static final ArchRule SOLO_LA_SINCRONIZACION_USA_LOS_PUERTOS_DE_LA_CATEDRA = noClasses()
+            .that().resideOutsideOfPackages(CATEDRA_REST, CATEDRA_REDIS)
+            .and().doNotHaveSimpleName("ApplyFullSnapshotUseCaseImpl")
+            .and().doNotHaveSimpleName("ApplyIncrementalChangeUseCaseImpl")
+            .should().dependOnClassesThat(
+                    simpleName("CatedraSnapshotPort").or(simpleName("CatedraCatalogReadPort")))
+            .allowEmptyShould(true);
+
+    /** Complementa la anterior: ni la web ni la persistencia usan los clientes REST o Redis de la catedra. */
+    static final ArchRule WEB_Y_PERSISTENCIA_NO_USAN_LA_CATEDRA = noClasses()
+            .that().resideInAnyPackage(WEB, PERSISTENCIA)
+            .should().dependOnClassesThat()
+            .resideInAnyPackage(CATEDRA_REST, CATEDRA_REDIS, "org.springframework.data.redis..")
             .allowEmptyShould(true);
 
     private ArchitectureRules() {
