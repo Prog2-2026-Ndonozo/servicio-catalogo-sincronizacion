@@ -96,7 +96,6 @@ No es código — es resolver con un ADR qué significa exactamente "disponibili
 - [ ] Filtro por nombre: contiene, sin mayúsculas, sobre nombre y apellido; las tildes no se ignoran por ahora (ADR-0035)
 - [ ] Endpoint de lectura de categorías, para que KMP ofrezca el filtro por categoría (ADR-0035)
 - [ ] Sin paginación por ahora (ADR-0035)
-- [ ] Endpoint de agenda vigente de un profesional para servicio-turnos (E §4.2, E §7, I §17); autenticación entre servicios según #10
 - [ ] Test: filtros combinados y verificación de que nunca se llama a la cátedra por búsqueda
 
 ---
@@ -107,6 +106,10 @@ Cada uno es una funcionalidad transversal autocontenida — issue propio, commit
 
 ### #10 feat: JWT inter-servicios para servicio-turnos `[security]`
 Según la decisión ya tomada en `ADR-0002` (propagación de identidad).
+
+- [ ] Validar el JWT del usuario final, emitido por servicio-turnos (login en turnos, ADR-0035), en los endpoints de búsqueda y categorías
+- [ ] Autenticación entre servicios: JWT del usuario propagado o JWT técnico (decisión pendiente, E §9)
+- [ ] Endpoint de agenda vigente de un profesional para servicio-turnos (E §4.2, E §7, I §17; ADR-0035): profesional, su estado y sus horarios semanales con `enabled`
 
 ### #11 feat: resiliencia ante indisponibilidad de cátedra `[feature]`
 Timeouts + reintentos acotados al llamar REST/Redis/Kafka de cátedra. Las búsquedas siguen funcionando con la última copia local (E §8).
