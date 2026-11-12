@@ -115,7 +115,8 @@ Timeouts + reintentos acotados al llamar REST/Redis/Kafka de cátedra. Las búsq
 Expone el estado guardado en #7 (E §4.1: *"informar el estado y los errores de sincronización"*).
 
 ### #13 feat: CORS y validación de entrada `[security]`
-CORS según clientes permitidos + validación de DTOs en cada endpoint público.
+Validación de DTOs en cada endpoint público (E §9). **CORS no se implementa**: el cliente es una app Android nativa y, según el
+profesor (verbal, a confirmar por escrito), su mención en E §9 es un error del documento. Ver `DECISIONES.md`.
 
 ---
 
