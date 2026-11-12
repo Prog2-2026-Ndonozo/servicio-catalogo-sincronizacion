@@ -6,7 +6,6 @@ import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.web.dto
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.web.mapper.ProfessionalDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,7 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/professionals")
+@RequestMapping("/api/professionals")
 @RequiredArgsConstructor
 public class ProfessionalController {
 
@@ -31,6 +30,6 @@ public class ProfessionalController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate availableOn){
         ProfessionalSearchCriteria criteria = mapper.toCriteria(categoryId,name,enabled,availableOn);
         return searchService.search(criteria).stream().map(mapper::toResponse).toList();
-    };
+    }
 
 }

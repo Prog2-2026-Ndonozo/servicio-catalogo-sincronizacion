@@ -4,6 +4,7 @@ import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.exception.Inval
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.Professional;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.ProfessionalSearchCriteria;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.web.dto.ProfessionalResponse;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.web.exception.InvalidSearchRequestException;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -11,9 +12,9 @@ import java.time.LocalDate;
 @Component
 public class ProfessionalDtoMapper {
 
-    public ProfessionalSearchCriteria toCriteria(Long categoryId, String name, Boolean enabeld, LocalDate availableOn){
+    public ProfessionalSearchCriteria toCriteria(Long categoryId, String name, Boolean enabled, LocalDate availableOn){
         try {
-            return ProfessionalSearchCriteria.builder().categoryId(categoryId).name(name).enabled(enabeld).availableOn(availableOn).build();
+            return ProfessionalSearchCriteria.builder().categoryId(categoryId).name(name).enabled(enabled).availableOn(availableOn).build();
         }catch(InvalidCatalogDataException e ){
             throw new InvalidSearchRequestException(e.getMessage());
         }
