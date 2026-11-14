@@ -111,14 +111,14 @@ Cada uno es una funcionalidad transversal autocontenida — issue propio, commit
 ### #10 feat: JWT inter-servicios para servicio-turnos `[security]`
 Según la decisión ya tomada en `ADR-0002` (propagación de identidad).
 
-- [ ] Validar el JWT de servicio-turnos (firma, vigencia y permisos, E §9) en **todos** los endpoints de datos: búsqueda, categorías, agenda y estado. El catálogo no recibe tokens de usuario final (ADR-0036)
+- [x] Validar el JWT de servicio-turnos (firma, vigencia y permisos, E §9) en **todos** los endpoints de datos: búsqueda, categorías, agenda (el estado llega con el #12). El catálogo no recibe tokens de usuario final (ADR-0036)
 - [x] Decidir y justificar la autenticación entre servicios (E §9): JWT técnico de turnos firmado con RS256 — ADR-0037
-- [ ] Configurar el servidor de recursos: clave pública, emisor, audiencia y `SecurityFilterChain` (stateless, CSRF desactivado, `SCOPE_catalog:read`)
-- [ ] Respuestas 401 y 403 como `application/problem+json` con `code` estable
-- [ ] Swagger solo en el perfil de desarrollo, con esquema bearer para "Authorize"
-- [ ] Tests: token válido, sin token, firma inválida, vencido, otro emisor, otra audiencia y sin permiso (con decodificador real)
-- [ ] Documentar el contrato del token para el servicio de turnos (claims, vigencia, clave pública)
-- [ ] Endpoint de agenda vigente de un profesional para servicio-turnos (E §4.2, E §7, I §17; ADR-0035): profesional, su estado y sus horarios semanales con `enabled`
+- [x] Configurar el servidor de recursos: clave pública, emisor, audiencia y `SecurityFilterChain` (stateless, CSRF desactivado, `SCOPE_catalog:read`)
+- [x] Respuestas 401 y 403 como `application/problem+json` con `code` estable
+- [x] Swagger solo en el perfil de desarrollo, con esquema bearer para "Authorize"
+- [x] Tests: token válido, sin token, firma inválida, vencido, otro emisor, otra audiencia y sin permiso (con decodificador real)
+- [x] Documentar el contrato del token para el servicio de turnos — `docs/contratos/catalogo-para-turnos.md`
+- [x] Endpoint de agenda vigente de un profesional para servicio-turnos (E §4.2, E §7, I §17; ADR-0035): profesional, su estado y sus horarios semanales con `enabled`
 
 ### #11 feat: resiliencia ante indisponibilidad de cátedra `[feature]`
 Timeouts + reintentos acotados al llamar REST/Redis/Kafka de cátedra. Las búsquedas siguen funcionando con la última copia local (E §8).

@@ -123,6 +123,7 @@ Detalle: [`docs/arquitecturaHexagonalServicioCatalogo.md`](docs/arquitecturaHexa
 | [`docs/arquitecturaHexagonalServicioCatalogo.md`](docs/arquitecturaHexagonalServicioCatalogo.md) | Paquetes, puertos, fachadas, reglas ArchUnit |
 | [`docs/BacklogServicioCatalogo.md`](docs/BacklogServicioCatalogo.md) | Issues, milestones y definición de terminado |
 | [`docs/DECISIONES.md`](docs/DECISIONES.md) | Decisiones tomadas y pendientes |
+| [`docs/contratos/catalogo-para-turnos.md`](docs/contratos/catalogo-para-turnos.md) | Contrato con servicio-turnos: token, operaciones, modelos y errores |
 | [`docs/glosario.md`](docs/glosario.md) | Vocabulario del proyecto |
 | [`AGENTS.md`](AGENTS.md) | Contexto y reglas para agentes de IA |
 
