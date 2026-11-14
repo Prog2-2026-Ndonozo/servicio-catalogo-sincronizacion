@@ -92,9 +92,9 @@ No es código — es resolver con un ADR qué significa exactamente "disponibili
 
 ### #9 feat: búsqueda de profesionales con filtros obligatorios `[feature]`
 - [ ] Caso de uso `SearchProfessionalsUseCase`: categoría, nombre, estado habilitado, disponibilidad (según #8)
-- [ ] Adaptador REST protegido con JWT de usuario final (emitido por turnos, ADR-0035); ruta directa o vía turnos: pendiente
+- [ ] Adaptador REST, consumido solo por servicio-turnos (ADR-0036); la protección con JWT entre servicios es el #10
 - [ ] Filtro por nombre: contiene, sin mayúsculas, sobre nombre y apellido; las tildes no se ignoran por ahora (ADR-0035)
-- [ ] Endpoint de lectura de categorías, para que KMP ofrezca el filtro por categoría (ADR-0035)
+- [ ] Endpoint de lectura de categorías, para que servicio-turnos ofrezca a KMP el filtro por categoría (ADR-0035, ADR-0036)
 - [ ] Sin paginación por ahora (ADR-0035)
 - [ ] Test: filtros combinados y verificación de que nunca se llama a la cátedra por búsqueda
 
@@ -104,22 +104,31 @@ No es código — es resolver con un ADR qué significa exactamente "disponibili
 
 Cada uno es una funcionalidad transversal autocontenida — issue propio, commit propio.
 
+> ⚠️ **Cambio de alcance (2026-11-13, ADR-0036):** la interfaz KMP **no consulta a este servicio**. El único cliente HTTP es
+> `servicio-turnos`. Por eso este servicio **no valida JWT de usuario final** (el login vive en turnos), solo el token con que
+> turnos se identifica; los endpoints de búsqueda y categorías pasan a ser contratos entre servicios; y CORS no tiene destinatario.
+
 ### #10 feat: JWT inter-servicios para servicio-turnos `[security]`
 Según la decisión ya tomada en `ADR-0002` (propagación de identidad).
 
-- [ ] Validar el JWT del usuario final, emitido por servicio-turnos (login en turnos, ADR-0035), en los endpoints de búsqueda y categorías
-- [ ] Autenticación entre servicios: JWT del usuario propagado o JWT técnico (decisión pendiente, E §9)
+- [ ] Validar el JWT de servicio-turnos (firma, vigencia y permisos, E §9) en **todos** los endpoints de datos: búsqueda, categorías, agenda y estado. El catálogo no recibe tokens de usuario final (ADR-0036)
+- [x] Decidir y justificar la autenticación entre servicios (E §9): JWT técnico de turnos firmado con RS256 — ADR-0037
+- [ ] Configurar el servidor de recursos: clave pública, emisor, audiencia y `SecurityFilterChain` (stateless, CSRF desactivado, `SCOPE_catalog:read`)
+- [ ] Respuestas 401 y 403 como `application/problem+json` con `code` estable
+- [ ] Swagger solo en el perfil de desarrollo, con esquema bearer para "Authorize"
+- [ ] Tests: token válido, sin token, firma inválida, vencido, otro emisor, otra audiencia y sin permiso (con decodificador real)
+- [ ] Documentar el contrato del token para el servicio de turnos (claims, vigencia, clave pública)
 - [ ] Endpoint de agenda vigente de un profesional para servicio-turnos (E §4.2, E §7, I §17; ADR-0035): profesional, su estado y sus horarios semanales con `enabled`
 
 ### #11 feat: resiliencia ante indisponibilidad de cátedra `[feature]`
 Timeouts + reintentos acotados al llamar REST/Redis/Kafka de cátedra. Las búsquedas siguen funcionando con la última copia local (E §8).
 
 ### #12 feat: endpoint de estado y errores de sincronización `[feature]`
-Expone el estado guardado en #7 (E §4.1: *"informar el estado y los errores de sincronización"*).
+Expone el estado guardado en #7 (E §4.1: *"informar el estado y los errores de sincronización"*). Consumidor: servicio-turnos y diagnóstico propio, no KMP (ADR-0036).
 
 ### #13 feat: CORS y validación de entrada `[security]`
-Validación de DTOs en cada endpoint público (E §9). **CORS no se implementa**: el cliente es una app Android nativa y, según el
-profesor (verbal, a confirmar por escrito), su mención en E §9 es un error del documento. Ver `DECISIONES.md`.
+Validación de DTOs en cada endpoint (E §9). **CORS no se implementa**: ningún navegador ni app llega a este servicio (solo turnos, ADR-0036) y,
+según el profesor (verbal, a confirmar por escrito), su mención en E §9 es un error del documento. Ver `DECISIONES.md`.
 
 ---
 

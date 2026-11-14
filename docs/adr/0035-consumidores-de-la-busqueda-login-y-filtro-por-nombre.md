@@ -3,6 +3,9 @@
 Fecha: 2026-11-10
 Estado: aceptada (con dos puntos abiertos, ver "Pendiente")
 
+> **Parcialmente reemplazada por ADR-0036 (2026-11-13):** la decisión 1 (la búsqueda la consume KMP) y el pendiente
+> "ruta de KMP hacia la búsqueda" cambiaron: solo el servicio de turnos consume este servicio. El resto sigue vigente.
+
 ## Contexto
 Antes de implementar la búsqueda (#9) hacía falta fijar quién la consume, dónde viven el registro y el login del
 usuario final y qué significa el filtro por nombre. Se revisaron completos E (PROJECT_STATEMENT) e I

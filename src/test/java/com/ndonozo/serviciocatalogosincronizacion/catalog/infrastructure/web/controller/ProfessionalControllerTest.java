@@ -7,11 +7,15 @@ import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.Professio
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.web.exception.ApiExceptionHandler;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.web.mapper.ProfessionalDtoMapper;
 import jakarta.servlet.ServletException;
+import com.ndonozo.serviciocatalogosincronizacion.config.SecurityConfig;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.security.ProblemJsonSecurityHandlers;
+import com.ndonozo.serviciocatalogosincronizacion.support.JwtTestSupport;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -38,8 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * de los resultados al JSON y de las solicitudes invalidas a 400. No hay seguridad todavia (#10).
  */
 @WebMvcTest(ProfessionalController.class)
-@Import({ProfessionalDtoMapper.class, ApiExceptionHandler.class})
-class ProfessionalControllerTest {
+@Import({ProfessionalDtoMapper.class, ApiExceptionHandler.class, SecurityConfig.class, ProblemJsonSecurityHandlers.class})
+class ProfessionalControllerTest extends JwtTestSupport {
 
     private static final String URL = "/api/professionals/search";
 
@@ -67,7 +71,7 @@ class ProfessionalControllerTest {
     void sin_parametros_busca_sin_filtros_y_responde_200_con_la_lista() throws Exception {
         when(searchService.search(any())).thenReturn(List.of(profesional(15, "Ana", "Torres", true)));
 
-        mockMvc.perform(get(URL))
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()").value(1))
@@ -88,7 +92,7 @@ class ProfessionalControllerTest {
     void la_respuesta_no_expone_las_fechas_de_creacion_ni_de_actualizacion() throws Exception {
         when(searchService.search(any())).thenReturn(List.of(profesional(15, "Ana", "Torres", true)));
 
-        mockMvc.perform(get(URL))
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()))
                 .andExpect(jsonPath("$[0].createdAt").doesNotExist())
                 .andExpect(jsonPath("$[0].updatedAt").doesNotExist());
     }
@@ -97,7 +101,7 @@ class ProfessionalControllerTest {
     void sin_resultados_responde_200_con_una_lista_vacia() throws Exception {
         when(searchService.search(any())).thenReturn(List.of());
 
-        mockMvc.perform(get(URL).param("name", "zzz"))
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()).param("name", "zzz"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
     }
@@ -108,7 +112,7 @@ class ProfessionalControllerTest {
                 profesional(16, "Mariana", "Gomez", true),
                 profesional(15, "Ana", "Torres", false)));
 
-        mockMvc.perform(get(URL))
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()))
                 .andExpect(jsonPath("$[0].id").value(16))
                 .andExpect(jsonPath("$[1].id").value(15))
                 .andExpect(jsonPath("$[1].enabled").value(false));
@@ -120,7 +124,7 @@ class ProfessionalControllerTest {
     void los_cuatro_parametros_llegan_a_los_criterios() throws Exception {
         when(searchService.search(any())).thenReturn(List.of());
 
-        mockMvc.perform(get(URL)
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido())
                         .param("categoryId", "101")
                         .param("name", "ana")
                         .param("enabled", "true")
@@ -138,7 +142,7 @@ class ProfessionalControllerTest {
     void enabled_false_llega_como_false_y_no_como_sin_filtro() throws Exception {
         when(searchService.search(any())).thenReturn(List.of());
 
-        mockMvc.perform(get(URL).param("enabled", "false")).andExpect(status().isOk());
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()).param("enabled", "false")).andExpect(status().isOk());
 
         assertThat(criteriosRecibidos().getEnabled()).isFalse();
     }
@@ -147,7 +151,7 @@ class ProfessionalControllerTest {
     void un_nombre_en_blanco_se_trata_como_sin_filtro() throws Exception {
         when(searchService.search(any())).thenReturn(List.of());
 
-        mockMvc.perform(get(URL).param("name", "   ")).andExpect(status().isOk());
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()).param("name", "   ")).andExpect(status().isOk());
 
         assertThat(criteriosRecibidos().getName()).isNull();
     }
@@ -156,7 +160,7 @@ class ProfessionalControllerTest {
 
     @Test
     void una_categoria_no_positiva_responde_400_con_problem_json_y_codigo_estable() throws Exception {
-        mockMvc.perform(get(URL).param("categoryId", "0"))
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()).param("categoryId", "0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(400))
@@ -168,7 +172,7 @@ class ProfessionalControllerTest {
 
     @Test
     void un_nombre_de_mas_de_100_caracteres_responde_400() throws Exception {
-        mockMvc.perform(get(URL).param("name", "a".repeat(101)))
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()).param("name", "a".repeat(101)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
 
@@ -177,7 +181,7 @@ class ProfessionalControllerTest {
 
     @Test
     void una_fecha_mal_escrita_responde_400_sin_llamar_a_la_fachada() throws Exception {
-        mockMvc.perform(get(URL).param("availableOn", "hola"))
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()).param("availableOn", "hola"))
                 .andExpect(status().isBadRequest());
 
         verify(searchService, never()).search(any());
@@ -185,19 +189,19 @@ class ProfessionalControllerTest {
 
     @Test
     void una_fecha_con_otro_formato_responde_400() throws Exception {
-        mockMvc.perform(get(URL).param("availableOn", "20/11/2026"))
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()).param("availableOn", "20/11/2026"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void un_booleano_mal_escrito_responde_400() throws Exception {
-        mockMvc.perform(get(URL).param("enabled", "quizas"))
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()).param("enabled", "quizas"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void una_categoria_no_numerica_responde_400() throws Exception {
-        mockMvc.perform(get(URL).param("categoryId", "abc"))
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()).param("categoryId", "abc"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -208,7 +212,7 @@ class ProfessionalControllerTest {
         // InvalidCatalogDataException tambien la lanza el modelo ante una fila invalida: eso es un fallo del servidor
         when(searchService.search(any())).thenThrow(new InvalidCatalogDataException("fila corrupta"));
 
-        assertThatThrownBy(() -> mockMvc.perform(get(URL)))
+        assertThatThrownBy(() -> mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido())))
                 .isInstanceOf(ServletException.class)
                 .hasRootCauseInstanceOf(InvalidCatalogDataException.class);
     }
@@ -217,11 +221,11 @@ class ProfessionalControllerTest {
 
     @Test
     void solo_se_acepta_get() throws Exception {
-        mockMvc.perform(post(URL)).andExpect(status().isMethodNotAllowed());
+        mockMvc.perform(post(URL).header(HttpHeaders.AUTHORIZATION, tokenValido())).andExpect(status().isMethodNotAllowed());
     }
 
     @Test
     void una_ruta_inexistente_responde_404() throws Exception {
-        mockMvc.perform(get("/api/professionals/otra")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/professionals/otra").header(HttpHeaders.AUTHORIZATION, tokenValido())).andExpect(status().isNotFound());
     }
 }

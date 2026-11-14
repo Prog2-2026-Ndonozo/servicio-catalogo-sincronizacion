@@ -133,14 +133,16 @@ de cada caso de uso y deja un único punto de entrada por responsabilidad.
 
 | Puerto in | Fachada | Adaptador in | Consumidor | JWT esperado |
 |---|---|---|---|---|
-| `SearchProfessionalsUseCase` | `ProfessionalSearchService` | REST `/api/professionals/search` | App KMP (ruta directa o vía turnos: pendiente) | JWT de usuario final, emitido por turnos (ADR-0035) |
-| Agenda vigente de un profesional (nombre del puerto por definir, #10) | por definir | REST `/api/internal/professionals/{id}/agenda` | servicio-turnos | Autenticación entre servicios: pendiente |
+| `SearchProfessionalsUseCase` | `ProfessionalSearchService` | REST `/api/professionals/search` | servicio-turnos (en nombre de KMP) | JWT entre servicios (#10, ADR-0036) |
+| `ListProfessionalCategoriesUseCase` | `ProfessionalCategoryService` | REST `/api/professional-categories` | servicio-turnos (en nombre de KMP) | JWT entre servicios (#10, ADR-0036) |
+| Agenda vigente de un profesional (nombre del puerto por definir, #10) | por definir | REST `/api/internal/professionals/{id}/agenda` | servicio-turnos | JWT entre servicios (#10, ADR-0036) |
 | `ApplyIncrementalChangeUseCase` | `CatalogSyncService` | `messaging/CatalogUpdatedListener` | Evento `CatalogUpdated` de cátedra | N/A (no es HTTP) |
 | `ApplyFullSnapshotUseCase` | `CatalogSyncService` | disparado desde `CatalogSyncService` ante base vacía o discontinuidad | Interno | N/A |
-| `GetSyncStatusUseCase` | `CatalogSyncService` | REST `/api/sync/status` | Observabilidad / debugging propio | JWT técnico inter-servicios (opcional exponerlo también a un admin en KMP) |
+| `GetSyncStatusUseCase` | `CatalogSyncService` | REST `/api/sync/status` | servicio-turnos y diagnóstico propio | JWT entre servicios (#10, ADR-0036) |
 
-Turnos **no** consume la búsqueda sino la agenda de un profesional concreto (E §4.2, E §7, I §17; ADR-0035).
-Pendientes (ver `DECISIONES.md`): ruta de KMP hacia la búsqueda y autenticación entre servicios.
+**KMP no consulta a este servicio**: el único cliente HTTP es el servicio de turnos (I §17, ADR-0036). Turnos consume la
+búsqueda, las categorías y la agenda vigente de un profesional (E §4.2, E §7). Pendiente (ver `DECISIONES.md`): cómo se
+autentican los servicios entre sí (#10).
 
 ## Puertos de salida — a qué le hablan y quién los implementa
 
