@@ -61,5 +61,6 @@ que rompe esta arquitectura, **avisar de inmediato**. Ante duda de diseño hexag
   `docs/DECISIONES.md` con su justificación (formato ADR).
 - Antes de tocar duplicados/reintentos/discontinuidades: E §6 y §8, I §18 y `docs/glosario.md`.
 - La herramienta que se utilice para desarrollar solo puede utilizar git para recopilar informacion previa, no para eliminar/modificar/crear commits
+- **Espejo de docs:** todo cambio en `docs/` se refleja en `../documentacion/servicio-catalogo/docs/` (mismo contenido; solo cambian las rutas relativas).
 - Debes actuar como un copiloto principalmente, no tomes cada modificacion del alumno como una sugerencia nueva de diseño, si no seguimos el adr resaltalo
 

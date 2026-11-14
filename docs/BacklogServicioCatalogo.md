@@ -46,10 +46,10 @@ PostgreSQL propio + variables de entorno externalizadas (`application.yml` con p
 Cubre evidencia mínima: *"una inicialización desde snapshot"* (E §11).
 
 ### #5 feat: sincronización completa del catálogo desde snapshot `[feature]`
-- [ ] Puerto `CatedraSnapshotPort` + adaptador REST (`GET /api/synchronization/snapshot`, JWT técnico)
-- [ ] Caso de uso `ApplyFullSnapshotUseCase`: aplica versión + 3 colecciones de forma transaccional (E §6.1)
-- [ ] Disparo de la sincronización completa (al bootear con base vacía, o endpoint interno)
-- [ ] Test: si falla a mitad de camino, la versión local no avanza
+- [x] Puerto `CatedraSnapshotPort` + adaptador REST (`GET /api/synchronization/snapshot`, JWT técnico)
+- [x] Caso de uso `ApplyFullSnapshotUseCase`: aplica versión + 3 colecciones de forma transaccional (E §6.1)
+- [x] Disparo de la sincronización completa (al bootear con base vacía, o endpoint interno)
+- [x] Test: si falla a mitad de camino, la versión local no avanza
 
 ---
 
