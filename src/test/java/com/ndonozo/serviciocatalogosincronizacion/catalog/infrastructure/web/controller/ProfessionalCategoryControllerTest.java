@@ -3,10 +3,14 @@ package com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.web.co
 import com.ndonozo.serviciocatalogosincronizacion.catalog.application.service.ProfessionalCategoryService;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.ProfessionalCategory;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.web.mapper.ProfessionalCategoryDtoMapper;
+import com.ndonozo.serviciocatalogosincronizacion.config.SecurityConfig;
+import com.ndonozo.serviciocatalogosincronizacion.catalog.infrastructure.security.ProblemJsonSecurityHandlers;
+import com.ndonozo.serviciocatalogosincronizacion.support.JwtTestSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,8 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProfessionalCategoryController.class)
-@Import(ProfessionalCategoryDtoMapper.class)
-class ProfessionalCategoryControllerTest {
+@Import({ProfessionalCategoryDtoMapper.class, SecurityConfig.class, ProblemJsonSecurityHandlers.class})
+class ProfessionalCategoryControllerTest extends JwtTestSupport {
 
     private static final String URL = "/api/professional-categories";
 
@@ -44,7 +48,7 @@ class ProfessionalCategoryControllerTest {
                 categoria(101, "Clinica medica", "Atencion clinica general", true),
                 categoria(102, "Pediatria", "", false)));
 
-        mockMvc.perform(get(URL))
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()").value(2))
@@ -60,7 +64,7 @@ class ProfessionalCategoryControllerTest {
     void no_expone_las_fechas_de_creacion_ni_de_actualizacion() throws Exception {
         when(categoryService.list()).thenReturn(List.of(categoria(101, "Clinica medica", "", true)));
 
-        mockMvc.perform(get(URL))
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido()))
                 .andExpect(jsonPath("$[0].createdAt").doesNotExist())
                 .andExpect(jsonPath("$[0].updatedAt").doesNotExist());
     }
@@ -69,11 +73,11 @@ class ProfessionalCategoryControllerTest {
     void sin_categorias_responde_200_con_una_lista_vacia() throws Exception {
         when(categoryService.list()).thenReturn(List.of());
 
-        mockMvc.perform(get(URL)).andExpect(status().isOk()).andExpect(content().json("[]"));
+        mockMvc.perform(get(URL).header(HttpHeaders.AUTHORIZATION, tokenValido())).andExpect(status().isOk()).andExpect(content().json("[]"));
     }
 
     @Test
     void solo_se_acepta_get() throws Exception {
-        mockMvc.perform(post(URL)).andExpect(status().isMethodNotAllowed());
+        mockMvc.perform(post(URL).header(HttpHeaders.AUTHORIZATION, tokenValido())).andExpect(status().isMethodNotAllowed());
     }
 }

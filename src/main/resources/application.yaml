@@ -38,7 +38,20 @@ spring:
       password: ${CATEDRA_REDIS_PASSWORD}
       timeout: 5s
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          public-key-location: ${CATALOGO_JWT_PUBLIC_KEY_LOCATION}
+          audiences: ${CATALOGO_JWT_AUDIENCE:servicio-catalogo}
 
+
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+      enabled: false
 catedra:
   base-url: ${CATEDRA_BASE_URL}
   jwt: ${CATEDRA_JWT}
