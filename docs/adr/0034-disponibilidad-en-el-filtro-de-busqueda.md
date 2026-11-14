@@ -59,3 +59,6 @@ endpoint y la interfaz no deben presentarlo como disponibilidad de turnos.
   consulta debe resolverse en la base, sin cargar todos los profesionales en memoria.
 - Tests: un profesional con horario habilitado ese día aparece; uno con solo horarios deshabilitados o de otros días
   no; sin `availableOn` no se filtra; combinado con los demás filtros se aplican todos.
+
+> **Actualización (ADR-0036):** el consumidor del filtro es el servicio de turnos, que lo expone a KMP. Las reglas
+> de este ADR no cambian; donde dice "el cliente" o "KMP" se entiende turnos en nombre de KMP.
