@@ -12,6 +12,7 @@ import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.Catal
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.CatedraCatalogReadPort;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.out.ProcessedEventPort;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ApplyIncrementalChangeUseCaseImpl implements ApplyIncrementalChangeUseCase {
 
     private final CatedraCatalogReadPort catedra;
@@ -35,10 +37,13 @@ public class ApplyIncrementalChangeUseCaseImpl implements ApplyIncrementalChange
 
         // 1. Ya aplicado: la version local alcanza o supera a la del evento. Evento viejo termina sin llamar a redis
         if (update.getNewVersion() <= local.getSnapshotVersion()){
+            log.info("CatalogUpdated ignorado: la version {} ya esta aplicada (version local {}, eventId={})",
+                    update.getNewVersion(), local.getSnapshotVersion(), update.getEventId());
             return local;
         }
         // 2. Repetido: mismo eventId. Evento repetido termina aca sin llamar a Redis
         if (processedEvents.isProcessed(update.getEventId())){
+            log.info("CatalogUpdated ignorado: el evento {} ya fue procesado", update.getEventId());
             return local;
 
         }
@@ -72,6 +77,8 @@ public class ApplyIncrementalChangeUseCaseImpl implements ApplyIncrementalChange
         CatalogVersion applied = CatalogVersion.builder().snapshotVersion(update.getNewVersion()).build();
         catalogVersion.saveCatalogVersion(applied);
         processedEvents.markProcessed(update.getEventId(), update.getNewVersion());
+        log.info("CatalogUpdated aplicado: version local {} -> {} (eventId={})",
+                local.getSnapshotVersion(), applied.getSnapshotVersion(), update.getEventId());
         return applied;
 
     }
