@@ -138,3 +138,12 @@ según el profesor (verbal, a confirmar por escrito), su mención en E §9 es un
 ### #15 docs: diagrama de arquitectura hexagonal del servicio `[docs]`
 ### #16 docs: contrato REST expuesto a servicio-turnos (DTOs, auth, errores) `[docs]`
 ### #17 docs: checklist final de evidencias mínimas de catálogo (E §11) `[docs]`
+
+### #18 chore: dockerizar el servicio `[chore]`
+- [ ] Confirmar con la cátedra (17/11) si "levantarse mediante Docker Compose" (E §3) incluye los servicios o solo sus bases
+- [ ] `Dockerfile` de dos etapas: JDK 25 para compilar con Maven y JRE 25 para ejecutar; sin secretos dentro de la imagen
+- [ ] Servicio en el `docker-compose.yml`: `DB_HOST=postgres`, `env_file`, clave pública del JWT montada como archivo (`CATALOGO_JWT_PUBLIC_KEY_LOCATION`) y espera de la base con healthcheck
+- [ ] Comprobar que el contenedor alcanza Redis, Kafka y el REST de la cátedra
+- [ ] Red externa compartida con servicio-turnos (por ejemplo `proyecto-net`) para llamarse por nombre (`http://catalogo:8080`)
+- [ ] Mantener el modo de desarrollo (base en Docker, servicio desde el IDE) y documentar los dos modos en el README (#14)
+- [ ] Prueba: arrancar de cero con `docker compose up --build` y recorrer las evidencias (#17)
