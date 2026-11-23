@@ -3,7 +3,6 @@ package com.ndonozo.serviciocatalogosincronizacion.catalog.application.service;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.exception.FullSyncRequiredException;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogUpdate;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.CatalogVersion;
-import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.SyncState;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.model.SyncStatus;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.in.ApplyFullSnapshotUseCase;
 import com.ndonozo.serviciocatalogosincronizacion.catalog.domain.ports.in.ApplyIncrementalChangeUseCase;
@@ -13,9 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import static java.lang.classfile.Attributes.record;
 
-import static org.springframework.data.redis.connection.Limit.limit;
+
+
 
 @Service
 @Slf4j
@@ -31,7 +30,7 @@ public class CatalogSyncService {
 
     public boolean synchronizeIfEmpty() {
         if (catalogVersion.getCatalogVersion().getSnapshotVersion() > 0) {
-            return false;                      // ya sincronizado: no se escribe nada
+            return false;                      // ya se ha sincronizado: no se aplica el fullSnapshot
         }
         try {
             applyFullSnapshot.applyFullSnapshot();

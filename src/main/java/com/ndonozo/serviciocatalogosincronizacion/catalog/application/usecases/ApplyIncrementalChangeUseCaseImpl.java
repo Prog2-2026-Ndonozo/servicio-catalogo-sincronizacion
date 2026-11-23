@@ -67,6 +67,8 @@ public class ApplyIncrementalChangeUseCaseImpl implements ApplyIncrementalChange
             scheduleIds.addAll(changes.getWeeklySchedulesIds());
         }
 
+
+
         //4. Leer el estado vigente de esas entidades y guardarlo (el orden no importa por las FK diferidas)
 
         repository.saveProfessionals(catedra.fetchProfessional(professionalIds));
@@ -84,7 +86,7 @@ public class ApplyIncrementalChangeUseCaseImpl implements ApplyIncrementalChange
     }
 
 
-
+//
 
 
 }
